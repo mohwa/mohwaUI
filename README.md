@@ -1,2 +1,1 @@
-# mohwaUI
-만들고싶은 UI 들을 만들어보고, (일단)수집하는장소.
+# [mohwa-ui](https://github.com/mohwa/mohwaUI)
