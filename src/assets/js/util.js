@@ -282,6 +282,9 @@ const Util = {
         target.forEach(v => { ret.push(v); });
 
         return ret;
+    },
+    equal(val = null, val2 = null){
+        return val === val2;
     }
 };
 
