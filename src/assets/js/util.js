@@ -84,13 +84,13 @@ const Util = {
 
             ret = target;
         }
-        else if (Type.isString(prop) && !Type.isEmpty(val)){
-            ret = _prop(target, prop, val);
-        }
-        else if (Type.isString(prop)){
+        else if (Type.isString(prop) && Type.isEmpty(val)){
 
             if (_isStyleMarked(prop)) ret = target.style[prop.substr(1)];
             else ret = target[prop];
+        }
+        else if (Type.isString(prop) && !Type.isEmpty(val)){
+            ret = _prop(target, prop, val);
         }
 
 
@@ -283,6 +283,19 @@ const Util = {
 
         return ret;
     },
+    objectToArray(v = {}){
+
+        const ret = [];
+
+        Object.keys(v).map((v, k) => {
+            ret.push(v);
+        });
+
+        return ret;
+    },
+    /**
+     *
+     */
     equal(val = null, val2 = null){
         return val === val2;
     }

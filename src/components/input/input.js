@@ -19,6 +19,8 @@ const DATA = [
     '전성균',
     '가상화폐',
     '갓오브워',
+    '전모질이',
+    '전모질현',
     '문기현'
 ];
 
@@ -100,7 +102,11 @@ function _addEventListener(){
 
             const list = _getSearchData(val);
 
-            _addSearchList.call(this, ul, list);
+            //console.log(Util.objectToArray(list));
+
+            _clearSearchList(ul);
+
+            _addSearchList(ul, Util.objectToArray(list));
         }
     }]);
 
@@ -127,8 +133,18 @@ function _addSearchList(ul = null, list = []){
         html.push(`<li><a href="#">${v}</a></li>`);
     });
 
-
     Util.prop(ul, 'innerHTML', html.join(''));
+}
+
+/**
+ *
+ * @param ul
+ */
+function _clearSearchList(ul = null){
+
+    Util.prop(ul, 'innerHTML', '');
+
+    //console.log(ul);
 }
 
 /**
@@ -138,45 +154,34 @@ function _addSearchList(ul = null, list = []){
  */
 function _getSearchData(val = ''){
 
-    let ret = [];
+    let ret = {};
 
     val.split('').forEach((v, k) => {
 
-        const jaso = _jasoSeparator(v);
+        const targetJaso = _jasoSeparator(v);
 
-        const isFixedChar = jaso.cho ? true : false;
-
-        let cho = jaso.cho;
-        let jung = jaso.jung;
-        let jong = jaso.jong;
-
-        ret = [];
+        let targetCho = targetJaso.cho;
+        let targetJung = targetJaso.jung;
+        let targetJong = targetJaso.jong;
 
         DATA.forEach((vv, kk) => {
 
-            const _jaso = _jasoSeparator(vv[k]);
+            vv.split('').forEach(vvv => {
 
-            const _cho = _jaso.cho;
-            const _jung = _jaso.jung;
-            const _jong = _jaso.jong;
+                const jaso = _jasoSeparator(vvv);
 
-            if (!isFixedChar){
+                const cho = jaso.cho;
+                const jung = jaso.jung;
+                const jong = jaso.jong;
 
-                if (_cho === v){
-                    ret.push(vv);
+                //console.log('cho', targetCho, cho);
+                //console.log('jung', targetJung, jung);
+                //console.log('jong', targetJong, jong);
+
+                if (targetCho === cho && targetJung === jung && targetJong === jong){
+                    ret[vv] = vv;
                 }
-            }
-            else{
-
-                console.log('============================');
-                console.log('cho', cho, _cho);
-                console.log('jung', jung, _jung);
-                console.log('jong', jong, _jong);
-
-                if (cho === _cho && jung === _jung && jong === _jong){
-                    ret.push(vv);
-                }
-            }
+            });
         });
     });
 
@@ -191,9 +196,9 @@ function _getSearchData(val = ''){
  */
 function _jasoSeparator(v = ''){
 
-    const chos = ["ㄱ", "ㄲ", "ㄴ", "ㄷ", "ㄸ", "ㄹ", "ㅁ", "ㅂ", "ㅃ", "ㅅ", "ㅆ", "ㅇ", "ㅈ", "ㅉ", "ㅊ", "ㅋ", "ㅌ", "ㅍ", "ㅎ"];
-    const jungs = ["ㅏ", "ㅐ", "ㅑ", "ㅒ", "ㅓ", "ㅔ", "ㅕ", "ㅖ", "ㅗ", "ㅘ", "ㅙ", "ㅚ", "ㅛ", "ㅜ", "ㅝ", "ㅞ", "ㅟ", "ㅠ", "ㅡ", "ㅢ", "ㅣ"];
-    const jongs = ["", "ㄱ", "ㄲ", "ㄳ", "ㄴ", "ㄵ", "ㄶ", "ㄷ", "ㄹ", "ㄺ", "ㄻ", "ㄼ", "ㄽ", "ㄾ", "ㄿ", "ㅀ", "ㅁ", "ㅂ", "ㅄ", "ㅅ", "ㅆ", "ㅇ", "ㅈ", "ㅊ", "ㅋ", "ㅌ", "ㅍ", "ㅎ"];
+    const chos = ['ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'];
+    const jungs = ['ㅏ', 'ㅐ', 'ㅑ', 'ㅒ', 'ㅓ', 'ㅔ', 'ㅕ', 'ㅖ', 'ㅗ', 'ㅘ', 'ㅙ', 'ㅚ', 'ㅛ', 'ㅜ', 'ㅝ', 'ㅞ', 'ㅟ', 'ㅠ', 'ㅡ', 'ㅢ', 'ㅣ'];
+    const jongs = ['', 'ㄱ', 'ㄲ', 'ㄳ', 'ㄴ', 'ㄵ', 'ㄶ', 'ㄷ', 'ㄹ', 'ㄺ', 'ㄻ', 'ㄼ', 'ㄽ', 'ㄾ', 'ㄿ', 'ㅀ', 'ㅁ', 'ㅂ', 'ㅄ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'];
 
     const nTmp = v.charCodeAt(0) - 0xAC00;
 

@@ -29,7 +29,10 @@ const Type = {
      * 빈값 여부를 반환한다.
      */
     isEmpty(v = null){
-        return !v;
+        return v === undefined ||
+        v === null ||
+        v === false ||
+        v === 0;
     }
 };
 
