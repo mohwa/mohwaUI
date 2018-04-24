@@ -287,9 +287,7 @@ const Util = {
 
         const ret = [];
 
-        Object.keys(v).map((v, k) => {
-            ret.push(v);
-        });
+        Object.keys(v).map((k) => { ret.push(v[k]); });
 
         return ret;
     },

@@ -11,7 +11,8 @@ const Type = require('../../assets/js/type');
 
 const COMPONENT_CLASS_NAME = BASE.componentClassName('input-search');
 
-const DATA = [
+const DATAS = [
+    '가생이닷컴이지롱',
     '가생이닷컴',
     '강형욱',
     '나진수',
@@ -21,7 +22,8 @@ const DATA = [
     '갓오브워',
     '전모질이',
     '전모질현',
-    '문기현'
+    '문기현',
+    '사기꾼'
 ];
 
 // 전역 클래스 객체
@@ -90,7 +92,7 @@ function _addEventListener(){
 
     let tmpValue = '';
 
-    Util.prop(input, 'addEventListener', ['keyup', (e) => {
+    Util.prop(input, 'addEventListener', ['keyup', e => {
 
         const el = e.target;
         const val = el.value;
@@ -98,20 +100,44 @@ function _addEventListener(){
         if (!Util.equal(tmpValue, val)){
 
             tmpValue = val;
-            Util.prop(searchList, '@display', 'block');
 
-            const list = _getSearchData(val);
+            if (!val){
+                Util.prop(searchList, '@display', 'none');
+                return;
+            }
 
-            //console.log(Util.objectToArray(list));
+            const list = Util.objectToArray(_getSearchData(val));
+
+            if (list.length){
+
+                Util.prop(searchList, '@display', 'block');
+
+                _clearSearchList(ul);
+
+                _addSearchList(ul, list);
+            }
+        }
+    }]);
+
+    Util.prop(ul, 'addEventListener', ['click', e => {
+
+        const el = e.target;
+        const nodeName = el.nodeName.toLowerCase();
+
+        if (nodeName === 'a' || nodeName === 'span'){
+
+            const selectedText = Util.prop(Util.parents(el, 'li')[0], 'innerText');
+
+            Util.prop(input, 'value', selectedText);
 
             _clearSearchList(ul);
 
-            _addSearchList(ul, Util.objectToArray(list));
+            Util.prop(searchList, '@display', 'none');
         }
     }]);
 
     // 문서 엘리먼트를 클릭한 경우.
-    Util.prop(document, 'addEventListener', ['click', function(e){
+    Util.prop(document, 'addEventListener', ['click', e => {
 
         const el = e.target;
 
@@ -130,7 +156,16 @@ function _addSearchList(ul = null, list = []){
     let html = [];
 
     list.forEach(v => {
-        html.push(`<li><a href="#">${v}</a></li>`);
+
+        let text = v.text;
+        const matches = v.matches.join('');
+        const ptn = new RegExp(`[${matches}]`, 'g');
+
+        text = text.replace(ptn, match => {
+            return `<span style="color:red;font-weight: bold">${match}</span>`;
+        });
+
+        html.push(`<li><a href="#" onclick="return false">${text}</a></li>`);
     });
 
     Util.prop(ul, 'innerHTML', html.join(''));
@@ -141,10 +176,7 @@ function _addSearchList(ul = null, list = []){
  * @param ul
  */
 function _clearSearchList(ul = null){
-
     Util.prop(ul, 'innerHTML', '');
-
-    //console.log(ul);
 }
 
 /**
@@ -154,35 +186,42 @@ function _clearSearchList(ul = null){
  */
 function _getSearchData(val = ''){
 
-    let ret = {};
+    const ret = {};
 
     val.split('').forEach((v, k) => {
 
-        const targetJaso = _jasoSeparator(v);
+        const inputJaso = _jasoSeparator(v);
 
-        let targetCho = targetJaso.cho;
-        let targetJung = targetJaso.jung;
-        let targetJong = targetJaso.jong;
+        let inputCho = inputJaso.cho;
+        let inputJung = inputJaso.jung;
+        let inputJong = inputJaso.jong;
 
-        DATA.forEach((vv, kk) => {
+        if (inputCho){
 
-            vv.split('').forEach(vvv => {
+            DATAS.forEach((item) => {
 
-                const jaso = _jasoSeparator(vvv);
+                item.split('').forEach(char => {
 
-                const cho = jaso.cho;
-                const jung = jaso.jung;
-                const jong = jaso.jong;
+                    const jaso = _jasoSeparator(char);
 
-                //console.log('cho', targetCho, cho);
-                //console.log('jung', targetJung, jung);
-                //console.log('jong', targetJong, jong);
+                    const cho = jaso.cho;
+                    const jung = jaso.jung;
+                    const jong = jaso.jong;
 
-                if (targetCho === cho && targetJung === jung && targetJong === jong){
-                    ret[vv] = vv;
-                }
+                    if (inputCho === cho && inputJung === jung && inputJong === jong){
+
+                        const t = ret[item] = ret[item] || {text: item, matches: []};
+
+                        if (t.matches.length){
+                            t.matches.push(char);
+                        }
+                        else{
+                            t.matches = [char];
+                        }
+                    }
+                });
             });
-        });
+        }
     });
 
     return ret;
@@ -196,22 +235,25 @@ function _getSearchData(val = ''){
  */
 function _jasoSeparator(v = ''){
 
-    const chos = ['ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'];
-    const jungs = ['ㅏ', 'ㅐ', 'ㅑ', 'ㅒ', 'ㅓ', 'ㅔ', 'ㅕ', 'ㅖ', 'ㅗ', 'ㅘ', 'ㅙ', 'ㅚ', 'ㅛ', 'ㅜ', 'ㅝ', 'ㅞ', 'ㅟ', 'ㅠ', 'ㅡ', 'ㅢ', 'ㅣ'];
-    const jongs = ['', 'ㄱ', 'ㄲ', 'ㄳ', 'ㄴ', 'ㄵ', 'ㄶ', 'ㄷ', 'ㄹ', 'ㄺ', 'ㄻ', 'ㄼ', 'ㄽ', 'ㄾ', 'ㄿ', 'ㅀ', 'ㅁ', 'ㅂ', 'ㅄ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'];
+    //const chos = ['ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'];
+    //const jungs = ['ㅏ', 'ㅐ', 'ㅑ', 'ㅒ', 'ㅓ', 'ㅔ', 'ㅕ', 'ㅖ', 'ㅗ', 'ㅘ', 'ㅙ', 'ㅚ', 'ㅛ', 'ㅜ', 'ㅝ', 'ㅞ', 'ㅟ', 'ㅠ', 'ㅡ', 'ㅢ', 'ㅣ'];
+    //const jongs = ['', 'ㄱ', 'ㄲ', 'ㄳ', 'ㄴ', 'ㄵ', 'ㄶ', 'ㄷ', 'ㄹ', 'ㄺ', 'ㄻ', 'ㄼ', 'ㄽ', 'ㄾ', 'ㄿ', 'ㅀ', 'ㅁ', 'ㅂ', 'ㅄ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'];
 
-    const nTmp = v.charCodeAt(0) - 0xAC00;
+    v = v.charCodeAt(0) - parseInt('0xAC00', 16);
+
+    // 초성
+    const choNum = ((v / 28)) / 21;
+
+    // 중성
+    const jungNum = ((v / 28)) % 21;
 
      // 종성
-    const jongIndex = nTmp % 28;
-     // 중성
-    const jungIndex = ((nTmp - jongIndex) / 28) % 21;
-     // 초성
-    const choIndex = (((nTmp - jongIndex) / 28) - jungIndex) / 21;
+    const jongNum = v % 28;
 
-    const cho = chos[choIndex];
-    const jung = jungs[jungIndex];
-    const jong = jongs[jongIndex];
+
+    const cho = String.fromCharCode(choNum + parseInt('0x1100', 16));
+    const jung = String.fromCharCode(jungNum + parseInt('0x1161', 16));
+    const jong = String.fromCharCode(jongNum + parseInt('0x11A8', 16) - 1);
 
     return {
         cho: cho || '',
