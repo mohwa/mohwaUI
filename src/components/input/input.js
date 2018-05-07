@@ -10,8 +10,7 @@ const Util = require('../../assets/js/util');
 const Type = require('../../assets/js/type');
 
 const Ganada = require('ganada');
-
-const COMPONENT_CLASS_NAME = BASE.componentClassName('input-search');
+const COMPONENT_CLASS_NAME = BASE.componentClassName('auto-suggest');
 
 const DATAS = [
     '가생이닷컴이지롱',
@@ -49,14 +48,16 @@ class Input extends BASE_CLASS {
 
         this.init();
 
-        console.log(Ganada.assemble('ㄱㅏㅅㅐㅇ'));
-
     }
     init(){
 
         const elem = this.elem;
 
-        Util.append(elem, _createElement());
+        //console.log(elem.style);
+
+        //console.log(Util.parents(elem));
+
+        Util.after(elem, _createElement());
 
         _addEventListener.call(this);
     }
@@ -72,9 +73,6 @@ function _createElement(){
     let html = [];
 
     html.push(`<div class="${COMPONENT_CLASS_NAME}">`);
-    html.push(`<div class="${CLASS_NAME.searchText}">`);
-    html.push('<label>검색창</label><input type="text" />');
-    html.push('</div>');
     html.push(`<div class="${CLASS_NAME.searchList}">`);
     html.push('<ul>');
     html.push('</ul>');
@@ -92,20 +90,15 @@ function _addEventListener(){
 
     const elem = this.elem;
 
-    const input = Util.sel('input', elem);
     const searchList = Util.sel('.search-list', elem);
     const ul = Util.sel('ul', searchList);
 
     let tmpValue = '';
 
-    Util.prop(input, 'addEventListener', ['keyup', e => {
+    Util.prop(elem, 'addEventListener', ['keyup', e => {
 
         const el = e.target;
         const val = el.value;
-
-
-        //console.log(Ganada.disassemble(val));
-
 
         if (!Util.equal(tmpValue, val)){
 
@@ -120,10 +113,7 @@ function _addEventListener(){
 
             _clearSearchList(ul);
 
-            _getSearchData(val, ul);
-
-
-            //_addSearchList(ul, list);
+            _addSearchList(val.replace(/\s/g, ''), ul);
         }
     }]);
 
@@ -136,7 +126,7 @@ function _addEventListener(){
 
             const selectedText = Util.prop(Util.parents(el, 'li')[0], 'innerText');
 
-            Util.prop(input, 'value', selectedText);
+            Util.prop(elem, 'value', selectedText);
 
             _clearSearchList(ul);
 
@@ -157,29 +147,6 @@ function _addEventListener(){
 
 /**
  *
- * @private
- */
-//function _addSearchList(ul = null, list = []){
-//
-//    let html = [];
-//
-//    list.forEach(v => {
-//
-//        let text = v.text;
-//        const matches = v.matches.join('');
-//        const ptn = new RegExp(`[${matches}]`, 'g');
-//
-//        text = text.replace(ptn, match => {
-//            return `<span style="color:red;font-weight: bold">${match}</span>`;
-//        });
-//
-//        html.push(`<li><a href="#" onclick="return false">${text}</a></li>`);
-//    });
-//
-//}
-
-/**
- *
  * @param ul
  */
 function _clearSearchList(ul = null){
@@ -189,9 +156,10 @@ function _clearSearchList(ul = null){
 /**
  *
  * @param val
+ * @param ul
  * @private
  */
-function _getSearchData(val = '', ul = null){
+function _addSearchList(val = '', ul = null){
 
     let html = [];
 

@@ -166,6 +166,28 @@ const Util = {
         return target;
     },
     /**
+     *
+     */
+    offset(target = null){
+
+        let top = 0;
+        let left = 0;
+
+        const els = this.parents(target);
+
+        els.forEach(v => {
+            top += v.offsetTop;
+            left += v.offsetLeft;
+        });
+
+        return {
+            top,
+            left
+        };
+    },
+    position(target = null){
+    },
+    /**
      * target 엘리먼트의 이전 형제로 새로운 엘리먼트를 추가한다.
      */
     before(target = null, el = []){
