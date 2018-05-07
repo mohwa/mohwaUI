@@ -173,7 +173,7 @@ const Util = {
         let top = 0;
         let left = 0;
 
-        const els = this.parents(target);
+        const els = this.parents(target);4
 
         els.forEach(v => {
             top += v.offsetTop;
