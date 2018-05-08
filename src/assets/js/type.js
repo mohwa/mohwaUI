@@ -13,6 +13,9 @@ const Type = {
     isPlainObject(v = null){
         return v && v.constructor === Object;
     },
+    isFunction(v = null){
+        return typeof v === 'function';
+    },
     /**
      * 배열 타입 여부를 반환한다.
      */

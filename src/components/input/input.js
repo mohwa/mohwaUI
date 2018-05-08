@@ -9,15 +9,17 @@ const BASE = require('../../base');
 const Util = require('../../assets/js/util');
 const Type = require('../../assets/js/type');
 
+// 문자 조합/분리 모듈
 const Ganada = require('ganada');
 const COMPONENT_CLASS_NAME = BASE.componentClassName('auto-suggest');
 
 const DATAS = [
     '가생이닷컴이지롱',
     '가생이닷컴',
-    '전성균가생이병신가생이 등신',
+    '전성균가생이병신가생이등신',
+    '전성균가 이 등신',
     '강형욱',
-    '가새가 기울었어',
+    'a가새가 기울었어',
     '나진수',
     '강수량',
     '전성균',
@@ -26,7 +28,10 @@ const DATAS = [
     '전모질이',
     '전모질현',
     '문기현',
-    '사기꾼'
+    '사기꾼',
+    'abcsd',
+    'abcd1111',
+    '2223abcd'
 ];
 
 // 전역 클래스 객체
@@ -40,24 +45,39 @@ const CLASS_NAME = {
  */
 class Input extends BASE_CLASS {
 
-    constructor(elem = null){
+    constructor({
+        el = null,
+        onSelected = function(){}
+    } = {}){
 
         super();
 
-        this.elem = elem;
+        this.opts = {
+            el,
+            onSelected
+        };
+
+        this.component = null;
 
         this.init();
 
     }
     init(){
 
-        const elem = this.elem;
+        const root = this.opts.el;
+        const component = this.component = _createElement();
 
-        //console.log(elem.style);
+        // root 엘리먼트의 절대 수치
+        const offset = Util.offset(root);
 
-        //console.log(Util.parents(elem));
+        const width = Util.prop(root, '@width');
 
-        Util.after(elem, _createElement());
+        Util.prop(component, {
+            '@width': width,
+            '@left': `${offset.left}px`
+        });
+
+        Util.after(root, component);
 
         _addEventListener.call(this);
     }
@@ -88,32 +108,31 @@ function _createElement(){
  */
 function _addEventListener(){
 
-    const elem = this.elem;
+    const root = this.opts.el;
+    const component = this.component;
 
-    const searchList = Util.sel('.search-list', elem);
+    const searchList = Util.sel('.search-list', component);
     const ul = Util.sel('ul', searchList);
 
     let tmpValue = '';
 
-    Util.prop(elem, 'addEventListener', ['keyup', e => {
+    Util.prop(root, 'addEventListener', ['keyup', e => {
 
         const el = e.target;
         const val = el.value;
 
         if (!Util.equal(tmpValue, val)){
 
-            tmpValue = val;
-
-            if (!val){
-                Util.prop(searchList, '@display', 'none');
+            if (Type.isEmpty(val)){
+                _hide.call(this);
                 return;
             }
 
-            Util.prop(searchList, '@display', 'block');
+            tmpValue = val;
 
-            _clearSearchList(ul);
+            _addSearchList(val, ul);
 
-            _addSearchList(val.replace(/\s/g, ''), ul);
+            _show.call(this);
         }
     }]);
 
@@ -124,13 +143,16 @@ function _addEventListener(){
 
         if (nodeName === 'a' || nodeName === 'span'){
 
-            const selectedText = Util.prop(Util.parents(el, 'li')[0], 'innerText');
+            const li = Util.parents(el, 'li')[0];
+            const selectedText = Util.prop(parent, 'innerText');
 
-            Util.prop(elem, 'value', selectedText);
+            this.opts.onSelected.call(this, li);
+
+            Util.prop(root, 'value', selectedText);
 
             _clearSearchList(ul);
 
-            Util.prop(searchList, '@display', 'none');
+            _hide.call(this);
         }
     }]);
 
@@ -140,11 +162,26 @@ function _addEventListener(){
         const el = e.target;
 
         if (!Util.parents(el, `.${COMPONENT_CLASS_NAME}`).length){
-            Util.prop(searchList, '@display', 'none');
+            _hide.call(this);
         }
     }]);
 }
 
+/**
+ *
+ * @private
+ */
+function _show(){
+    Util.prop(this.component, '@display', 'block');
+}
+
+/**
+ *
+ * @private
+ */
+function _hide(){
+    Util.prop(this.component, '@display', 'none');
+}
 /**
  *
  * @param ul
@@ -163,21 +200,20 @@ function _addSearchList(val = '', ul = null){
 
     let html = [];
 
+    _clearSearchList(ul);
+
     DATAS.forEach(v => {
 
         let searchText = Ganada.search(v, val);
 
         if (searchText){
 
-            if (Ganada.isComplete(val)){
+            const ptn = new RegExp(searchText);
 
-                const ptn = new RegExp(searchText, 'g');
+            v = v.replace(ptn, match => {
 
-                v = v.replace(ptn, match => {
-
-                    return `<span style="color:red;font-weight: bold">${match}</span>`;
-                });
-            }
+                return `<span style="color:red;font-weight: bold">${match}</span>`;
+            });
 
             html.push(`<li><a href="#" onclick="return false">${v}</a></li>`);
         }

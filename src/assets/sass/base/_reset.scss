@@ -23,7 +23,8 @@ img {
     border: 0; }
 
 li {
-    list-style: none; }
+    list-style: none;
+}
 
 button {
     border: 0;
@@ -31,36 +32,18 @@ button {
     margin: 0;
     cursor: pointer;
     text-align: center;
-    background: none; }
+    background: none;
+}
 
 a, a:link, a:visited, a:active {
     text-decoration: none; }
 
-a {
-    color: #757575; }
+a { color: #757575; }
 
-* {
-    box-sizing: border-box; }
-
-.clr:after {
-    display: block;
-    clear: both;
-    content: ""; }
-
-.blind{
-    display: block;
-    overflow: hidden;
-    position: absolute;
-    top: -1000em !important;
-    left: 0 !important;
-}
+* { box-sizing: border-box; }
 
 /* placeholder */
 ::-webkit-input-placeholder { color: #ccc; }
 :-moz-placeholder { color: #ccc; }
 ::-moz-placeholder { color: #ccc; }
 :-ms-input-placeholder { color: #ccc !important; }
-
-.placeholder{
-    color: #ccc !important;
-}

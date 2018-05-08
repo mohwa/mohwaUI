@@ -10,25 +10,23 @@ const Util = {
     /**
      * querySelector 래퍼 함수.
      */
-    sel(v = '', el = document){
-        return el.querySelector(v);
+    sel(selector = '', el = document){
+        return el.querySelector(selector);
     },
     /**
      * querySelectorAll 래퍼 함수
      */
-    sels(v = '', el = document){
-        return el.querySelectorAll(v);
+    sels(selector = '', el = document){
+        return el.querySelectorAll(selector);
     },
     /**
      * 엘리먼트를 생성한다.
      */
-    el(name = '', prop = {}){
+    el(tagName = '', prop = {}){
 
-        const el = document.createElement(name);
+        const el = document.createElement(tagName);
 
-        this.prop(el, prop);
-
-        return el;
+        return this.prop(el, prop);
     },
     /**
      * 엘리먼트 어트리뷰트를 할당한다.
@@ -86,8 +84,13 @@ const Util = {
         }
         else if (Type.isString(prop) && Type.isEmpty(val)){
 
-            if (_isStyleMarked(prop)) ret = target.style[prop.substr(1)];
-            else ret = target[prop];
+            if (_isStyleMarked(prop)){
+                // 계산되어 정의된 스타일 정보를 가져온다.
+                ret = window.getComputedStyle(target).getPropertyValue(prop.substr(1));
+            }
+            else{
+                ret = target[prop];
+            }
         }
         else if (Type.isString(prop) && !Type.isEmpty(val)){
             ret = _prop(target, prop, val);
@@ -113,7 +116,7 @@ const Util = {
             else{
 
                 // 엘리먼트 속성이 함수인 경우, 네이티브 속성을 원형 그대로 사용한다.(꼭 이벤트만이 아니다)
-                if (typeof target[k] === 'function') target[k](...(Type.isArray(v) ? v : [v]));
+                if (Type.isFunction(target[k])) target[k](...(Type.isArray(v) ? v : [v]));
                 else target[k] = v;
             }
 
@@ -123,23 +126,36 @@ const Util = {
     /**
      * 부모 엘리먼트의 마지막 자식으로 새로운 엘리먼트를 추가한다.
      */
-    append(target = null, el = []){
+    append(parent = null, el = []){
 
         el = Type.isArray(el) ? el : [el];
 
-        el.forEach(v => { target.appendChild(v); });
+        el.forEach(v => { parent.appendChild(v); });
 
-        return target;
+        return parent;
     },
     /**
      * 부모 엘리먼트의 첫번째 자식으로 새로운 엘리먼트를 추가한다.
      */
-    prepend(target = null, el = []){
+    prepend(parent = null, el = []){
 
         el = Type.isArray(el) ? el : [el];
 
         // 전달받은 배열을 리버스시킨후 다시 할당한다(전달받은 순서로 할당시키기위함)
-        el.reverse().forEach(v => {target.insertBefore(v, parent.firstChild); });
+        el.reverse().forEach(v => {
+            parent.insertBefore(v, parent.firstChild);
+        });
+
+        return parent;
+    },
+    /**
+     * target 엘리먼트의 이전 형제로 새로운 엘리먼트를 추가한다.
+     */
+    before(target = null, el = []){
+
+        el = Type.isArray(el) ? el : [el];
+
+        el.reverse().forEach(v => { target.parentNode.insertBefore(v, target); });
 
         return target;
     },
@@ -166,37 +182,76 @@ const Util = {
         return target;
     },
     /**
-     *
+     * 전달받은 엘리먼트의, 절대 좌표들을 반환한다.
      */
     offset(target = null){
+
+        // getBoundingClientRect 메서드를 통해, 가져오는 좌표값의 기준은 부모 엘리먼트가 아닌, 절대 좌표가된다.
+        return target.getBoundingClientRect();
+    },
+    /**
+     * 전달받은 엘리먼트의, (부모 엘리먼트를 기준으로한)상대 좌표들을 반환한다.
+     */
+    position(target = null){
 
         let top = 0;
         let left = 0;
 
-        const els = this.parents(target);4
+        const parentNode = target.parentNode;
 
-        els.forEach(v => {
-            top += v.offsetTop;
-            left += v.offsetLeft;
-        });
+        // 부모 엘리먼트의 position 값이 `static` 이 아닌경우...
+        // 부모 엘리먼트의 position 값이, `static` 이 아닌경우, 자식 엘리먼트의 좌표는 부모 엘리먼트를 기준으로 정해지게된다.
+        // 즉 부모 엘리먼트의 position 값이, `static` 이 아닌경우, 자식 엘리먼트의 offsetTop, offsetLeft 값은 부모 엘리먼트의 위치를 기준으로 반환한다.
+        // 즉 this.offset(target).top - this.offset(parentNode).top <-- 이 공식과 같다.
+        if (target.parentNode === target.offsetParent){
+            top = target.offsetTop;
+            left = target.offsetLeft;
+        }
+        else{
+            top = this.offset(target).top - this.offset(parentNode).top;
+            left = this.offset(target).left - this.offset(parentNode).left;
+        }
 
         return {
             top,
             left
         };
     },
-    position(target = null){
+    /**
+     * target 엘리먼트의 가로 사이즈를 반환한다(padding, border, margin 사이즈 제외)
+     */
+    width(target = null){
+
+        const width = parseInt(this.prop(target, '@width'));
+        const padding = parseInt(this.prop(target, '@padding-left')) * 2;
+        const border = parseInt(this.prop(target, '@border-width')) * 2;
+
+        return width - (padding + border);
     },
     /**
-     * target 엘리먼트의 이전 형제로 새로운 엘리먼트를 추가한다.
+     * target 엘리먼트의 가로 사이즈를 반환한다(padding, margin 사이즈 제외)
      */
-    before(target = null, el = []){
+    innerWidth(target = null){
 
-        el = Type.isArray(el) ? el : [el];
+        const width = parseInt(this.prop(target, '@width'));
+        const border = parseInt(this.prop(target, '@border-width')) * 2;
 
-        el.reverse().forEach(v => { target.parentNode.insertBefore(v, target); });
+        return width - border;
+    },
+    /**
+     * target 엘리먼트의 가로 사이즈를 반환한다(margin 사이즈 제외)
+     * 만약 두 번째 인자값이 true 일 경우, 적용된 margin 값을 포함한다.
+     */
+    outerWidth(target = null, isMargin = false){
 
-        return target;
+        const width = parseInt(this.prop(target, '@width'));
+        const margin = parseInt(this.prop(target, '@margin-left')) * 2;
+
+        let ret = width;
+
+        if (isMargin) ret += margin;
+
+        return ret;
     },
     /**
      * target 엘리먼트의 다음 형제 엘리먼트를 반환한다.
@@ -247,6 +302,33 @@ const Util = {
 
                 if (selector) all.indexOf(parent) > -1 && ret.push(parent);
                 else ret.push(parent);
+            }
+        }
+
+        return ret;
+    },
+    /**
+     * 모든 부모 엘리먼트를 가져온다.
+     */
+    parent(target = null, selector = ''){
+
+        const ret = [];
+        let parent = target;
+
+        // selector 값이 일을 경우, 필터할 엘리먼트 목록을 가져온다.
+        const all = selector ? this.nodeListToArray(this.sels(selector)) : [];
+
+        while (parent){
+
+            parent = parent.parentNode;
+
+            // <p>, <div> 와 같은 엘리먼트가 탐색될 경우, 해당 엘리먼트를 반환한다.
+            if (parent && parent.nodeType === ELEMENT_NODE){
+
+                if (selector) all.indexOf(parent) > -1 && ret.push(parent);
+                else ret.push(parent);
+
+                break;
             }
         }
 
