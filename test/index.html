@@ -10,6 +10,7 @@
 	<meta name="apple-touch-fullscreen" content="yes">
 	<meta name="description">
 	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+	<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
 
 	<title></title>
 
@@ -31,8 +32,17 @@
 </head>
 <body>
 
+  <p><input type="text" id="mytextbox" size="20" value="Mozilla"/></p>
+  <p><button onclick="SelectText()">Select text</button></p>
+
 <input type="text" id="input_search" />
 <script type="text/javascript">
+
+function SelectText () {
+        var input = document.getElementById("mytextbox");
+            input.focus();
+            input.setSelectionRange(0, 5);
+}
 
 
 //	var p = $( "p:last" );
@@ -49,6 +59,9 @@
 
 	new MohwaUI.Input({
 		el: document.querySelector('#input_search'),
+		data: {
+			url: '/suggest/search'
+		},
 		onSelected: function(){
 			console.log(arguments);
 		}

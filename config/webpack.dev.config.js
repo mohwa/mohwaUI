@@ -36,7 +36,13 @@ const config = {
     devServer: {
         host: 'localhost',
         port: '8089',
-        open: true
+        open: true,
+        proxy: {
+            "/suggest/search": {
+                target: 'http://localhost:3000',
+                changeOrigin: true
+            }
+        }
     },
     plugins: [
         new WriteFilePlugin(),

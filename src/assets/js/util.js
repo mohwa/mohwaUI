@@ -349,11 +349,18 @@ const Util = {
         // 자식 엘리먼트가 있을때까지
         while (child = children.shift()){
 
+
             // <p>, <div> 와 같은 엘리먼트가 탐색될 경우, 해당 엘리먼트를 반환한다.
             if (child.nodeType === ELEMENT_NODE){
 
                 if (selector) all.indexOf(child) > -1 && ret.push(child);
                 else ret.push(child);
+            }
+
+            let length = child.childNodes ? child.childNodes.length : 0;
+
+            for (let i = 0; i < length; i++){
+                children.push(child.childNodes[i]);
             }
         }
 

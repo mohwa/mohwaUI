@@ -11,33 +11,16 @@ const Type = require('../../assets/js/type');
 
 // 문자 조합/분리 모듈
 const Ganada = require('ganada');
-const COMPONENT_CLASS_NAME = BASE.componentClassName('auto-suggest');
 
-const DATAS = [
-    '가생이닷컴이지롱',
-    '가생이닷컴',
-    '전성균가생이병신가생이등신',
-    '전성균가 이 등신',
-    '강형욱',
-    'a가새가 기울었어',
-    '나진수',
-    '강수량',
-    '전성균',
-    '가상화폐',
-    '갓오브워',
-    '전모질이',
-    '전모질현',
-    '문기현',
-    '사기꾼',
-    'abcsd',
-    'abcd1111',
-    '2223abcd'
-];
+const Mousetrap = require('mousetrap');
+
+const COMPONENT_CLASS_NAME = BASE.componentClassName('auto-suggest');
 
 // 전역 클래스 객체
 const CLASS_NAME = {
-    "searchList": 'search-list',
-    "searchText": 'search-text'
+    searchList: 'search-list',
+    searchText: 'search-text',
+    highlightWord: 'highlight-word'
 };
 
 /**
@@ -47,6 +30,7 @@ class Input extends BASE_CLASS {
 
     constructor({
         el = null,
+        data = [],
         onSelected = function(){}
     } = {}){
 
@@ -54,13 +38,21 @@ class Input extends BASE_CLASS {
 
         this.opts = {
             el,
+            data,
             onSelected
         };
 
+        this.data = _getData.call(this).then(res => {
+
+            this.data = res.data;
+            this.init();
+
+        }).catch(err => {
+            console.error(err);
+        });
+
         this.component = null;
-
-        this.init();
-
+        this.searchText = '';
     }
     init(){
 
@@ -121,6 +113,8 @@ function _addEventListener(){
         const el = e.target;
         const val = el.value;
 
+        this.searchText = val;
+
         if (!Util.equal(tmpValue, val)){
 
             if (Type.isEmpty(val)){
@@ -130,7 +124,9 @@ function _addEventListener(){
 
             tmpValue = val;
 
-            _addSearchList(val, ul);
+            _clearSearchList(ul);
+
+            Util.prop(ul, 'innerHTML', _getSearchData(val, this.data).join(''));
 
             _show.call(this);
         }
@@ -144,7 +140,8 @@ function _addEventListener(){
         if (nodeName === 'a' || nodeName === 'span'){
 
             const li = Util.parents(el, 'li')[0];
-            const selectedText = Util.prop(parent, 'innerText');
+
+            const selectedText = Util.prop(li, 'innerText');
 
             this.opts.onSelected.call(this, li);
 
@@ -153,6 +150,8 @@ function _addEventListener(){
             _clearSearchList(ul);
 
             _hide.call(this);
+
+            root.focus();
         }
     }]);
 
@@ -165,6 +164,12 @@ function _addEventListener(){
             _hide.call(this);
         }
     }]);
+
+    Mousetrap(root).bind('up', (e) => {_up.call(this, e); });
+    Mousetrap(root).bind('down', (e) => {_down.call(this, e); });
+
+    Mousetrap(searchList).bind('up', (e) => {_up.call(this, e); });
+    Mousetrap(searchList).bind('down', (e) => {_down.call(this, e); });
 }
 
 /**
@@ -182,6 +187,82 @@ function _show(){
 function _hide(){
     Util.prop(this.component, '@display', 'none');
 }
+
+/**
+ *
+ * @param e
+ * @private
+ */
+function _up(e = {}){
+
+    const root = this.opts.el;
+    const el = e.target;
+    const nodeName = el.nodeName.toLowerCase();
+
+    if (nodeName === 'a'){
+
+        const li = Util.prev(Util.parent(el)[0]);
+
+        if (li){
+
+            const a = Util.sel('a', li);
+            const text = Util.prop(a, 'innerText');
+
+            a.focus();
+
+            Util.prop(root, 'value', text);
+        }
+        else{
+
+            Util.prop(root, 'value', this.searchText);
+            root.focus();
+
+            window.setTimeout(() => {
+                // 커서의 위치를 이동시키기위해, start, end 위치를 동일하게 전달한다.
+                // https://developer.mozilla.org/en-US/docs/Web/API/HTMLInputElement/setSelectionRange
+                root.setSelectionRange(this.searchText.length, this.searchText.length);
+            }, 1);
+        }
+    }
+}
+
+/**
+ *
+ * @param e
+ * @private
+ */
+function _down(e = {}){
+
+    const el = e.target;
+    const nodeName = el.nodeName.toLowerCase();
+
+    if (nodeName === 'input'){
+
+        const children = Util.children(Util.next(el), 'li');
+
+        if (children.length){
+            Util.sel('a', children[0]).focus();
+        }
+    }
+    else if (nodeName === 'a'){
+
+        const li = Util.next(Util.parent(el)[0]);
+
+        if (li){
+            const a = Util.sel('a', li);
+            const text = Util.prop(a, 'innerText');
+
+            a.focus();
+
+            Util.prop(this.opts.el, 'value', text);
+        }
+        else{
+
+            Util.prop(this.opts.el, 'value', this.searchText);
+            this.opts.el.focus();
+        }
+    }
+}
 /**
  *
  * @param ul
@@ -192,17 +273,43 @@ function _clearSearchList(ul = null){
 
 /**
  *
+ * @returns {Promise}
+ */
+function _getData(){
+
+    const data = this.opts.data;
+
+    return new Promise((resolve, reject) => {
+
+        if (Type.isPlainObject(data)){
+
+            const url = data.url;
+            const type = data.type;
+
+            axios.get(url).then(res => {
+                resolve(res);
+            }).catch(err => {
+                reject(err);
+            });
+        }
+        else{
+            resolve({data: data});
+        }
+    });
+}
+
+/**
+ *
  * @param val
- * @param ul
+ * @param data
+ * @returns {Array}
  * @private
  */
-function _addSearchList(val = '', ul = null){
+function _getSearchData(val = '', data = []){
 
-    let html = [];
+    let ret = [];
 
-    _clearSearchList(ul);
-
-    DATAS.forEach(v => {
+    data.forEach(v => {
 
         let searchText = Ganada.search(v, val);
 
@@ -212,14 +319,14 @@ function _addSearchList(val = '', ul = null){
 
             v = v.replace(ptn, match => {
 
-                return `<span style="color:red;font-weight: bold">${match}</span>`;
+                return `<span class="${CLASS_NAME.highlightWord}">${match}</span>`;
             });
 
-            html.push(`<li><a href="#" onclick="return false">${v}</a></li>`);
+            ret.push(`<li><a href="#" onclick="return false" tabindex="0">${v}</a></li>`);
         }
     });
 
-    Util.prop(ul, 'innerHTML', html.join(''));
+    return ret;
 }
 
 
