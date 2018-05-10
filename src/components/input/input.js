@@ -23,6 +23,8 @@ const CLASS_NAME = {
     highlightWord: 'highlight-word'
 };
 
+
+
 /**
  *
  */
@@ -53,6 +55,8 @@ class Input extends BASE_CLASS {
 
         this.component = null;
         this.searchText = '';
+        this.activeItem = null;
+        this.activeState = 'BOF';
     }
     init(){
 
@@ -110,6 +114,8 @@ function _addEventListener(){
 
     Util.prop(root, 'addEventListener', ['keyup', e => {
 
+        if (_isPreventKeyCode(e)) return false;
+
         const el = e.target;
         const val = el.value;
 
@@ -125,6 +131,7 @@ function _addEventListener(){
             tmpValue = val;
 
             _clearSearchList(ul);
+            _clearActiveData.call(this);
 
             Util.prop(ul, 'innerHTML', _getSearchData(val, this.data).join(''));
 
@@ -193,37 +200,66 @@ function _hide(){
  * @param e
  * @private
  */
+function _isPreventKeyCode(e = {}){
+
+    let keyCode = e.keyCode;
+
+    return keyCode >= 37 && keyCode <= 40;
+}
+
+/**
+ *
+ * @private
+ */
+function _moveInputCursor(){
+
+    const root = this.opts.el;
+
+    window.setTimeout(() => {
+        // 커서의 위치를 이동시키기위해, start, end 위치를 동일하게 전달한다.
+        // https://developer.mozilla.org/en-US/docs/Web/API/HTMLInputElement/setSelectionRange
+        root.setSelectionRange(root.value.length, root.value.length);
+    });
+}
+/**
+ *
+ * @param e
+ * @private
+ */
 function _up(e = {}){
 
     const root = this.opts.el;
-    const el = e.target;
-    const nodeName = el.nodeName.toLowerCase();
+    const activeState = this.activeState;
 
-    if (nodeName === 'a'){
+    let el = this.activeItem;
+    let li = null;
 
-        const li = Util.prev(Util.parent(el)[0]);
-
-        if (li){
-
-            const a = Util.sel('a', li);
-            const text = Util.prop(a, 'innerText');
-
-            a.focus();
-
-            Util.prop(root, 'value', text);
-        }
-        else{
-
-            Util.prop(root, 'value', this.searchText);
-            root.focus();
-
-            window.setTimeout(() => {
-                // 커서의 위치를 이동시키기위해, start, end 위치를 동일하게 전달한다.
-                // https://developer.mozilla.org/en-US/docs/Web/API/HTMLInputElement/setSelectionRange
-                root.setSelectionRange(this.searchText.length, this.searchText.length);
-            }, 1);
-        }
+    if (activeState === 'EOF'){
+        li = el;
+        this.activeState = 'BODY';
     }
+    else{
+        li = Util.prev(el);
+    }
+
+    Util.prop(Util.sel('a', el), 'className', '');
+
+    if (li){
+
+        const a = Util.sel('a', li);
+        const text = Util.prop(a, 'innerText');
+
+        Util.prop(a, 'className', 'focus');
+        Util.prop(root, 'value', text);
+
+        this.activeItem = li;
+    }
+    else{
+        Util.prop(root, 'value', this.searchText);
+        this.activeState = 'BOF';
+    }
+
+    _moveInputCursor.call(this);
 }
 
 /**
@@ -233,35 +269,48 @@ function _up(e = {}){
  */
 function _down(e = {}){
 
-    const el = e.target;
-    const nodeName = el.nodeName.toLowerCase();
+    const root = this.opts.el;
+    const el = this.activeItem;
+    const activeState = this.activeState;
 
-    if (nodeName === 'input'){
+    if (activeState === 'BOF'){
 
-        const children = Util.children(Util.next(el), 'li');
+        const children = el || Util.children(Util.next(e.target), 'li');
 
-        if (children.length){
-            Util.sel('a', children[0]).focus();
-        }
+        let li = this.activeItem = children.length ? children[0] : children;
+
+        const a = Util.sel('a', li);
+        const text = Util.prop(a, 'innerText');
+
+        Util.prop(a, 'className', 'focus');
+        Util.prop(root, 'value', text);
+
+        this.activeState = 'BODY';
     }
-    else if (nodeName === 'a'){
+    else{
 
-        const li = Util.next(Util.parent(el)[0]);
+        let li = Util.next(el);
+
+        Util.prop(Util.sel('a', el), 'className', '');
 
         if (li){
+
             const a = Util.sel('a', li);
             const text = Util.prop(a, 'innerText');
 
-            a.focus();
+            Util.prop(a, 'className', 'focus');
+            Util.prop(root, 'value', text);
 
-            Util.prop(this.opts.el, 'value', text);
+            this.activeItem = li;
         }
         else{
 
-            Util.prop(this.opts.el, 'value', this.searchText);
-            this.opts.el.focus();
+            Util.prop(root, 'value', this.searchText);
+            this.activeState = 'EOF';
         }
     }
+
+    _moveInputCursor.call(this);
 }
 /**
  *
@@ -269,6 +318,16 @@ function _down(e = {}){
  */
 function _clearSearchList(ul = null){
     Util.prop(ul, 'innerHTML', '');
+}
+
+/**
+ *
+ * @private
+ */
+function _clearActiveData(){
+
+    this.activeItem = null;
+    this.activeState = 'BOF';
 }
 
 /**
@@ -284,9 +343,13 @@ function _getData(){
         if (Type.isPlainObject(data)){
 
             const url = data.url;
-            const type = data.type;
+            const method = data.method || 'get';
 
-            axios.get(url).then(res => {
+            axios({
+                url: url,
+                method: method,
+                data: data
+            }).then(res => {
                 resolve(res);
             }).catch(err => {
                 reject(err);
