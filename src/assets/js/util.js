@@ -245,9 +245,45 @@ const Util = {
     outerWidth(target = null, isMargin = false){
 
         const width = parseInt(this.prop(target, '@width'));
-        const margin = parseInt(this.prop(target, '@margin-left')) * 2;
+        const margin = parseInt(this.prop(target, '@margin-top')) * 2;
 
         let ret = width;
+
+        if (isMargin) ret += margin;
+
+        return ret;
+    },
+    /**
+     * target 엘리먼트의 가로 사이즈를 반환한다(padding, border, margin 사이즈 제외)
+     */
+    height(target = null){
+
+        const height = parseInt(this.prop(target, '@height'));
+        const padding = parseInt(this.prop(target, '@padding-top')) * 2;
+        const border = parseInt(this.prop(target, '@border-width')) * 2;
+
+        return height - (padding + border);
+    },
+    /**
+     * target 엘리먼트의 가로 사이즈를 반환한다(padding, margin 사이즈 제외)
+     */
+    innerHeight(target = null){
+
+        const height = parseInt(this.prop(target, '@height'));
+        const border = parseInt(this.prop(target, '@border-width')) * 2;
+
+        return height - border;
+    },
+    /**
+     * target 엘리먼트의 가로 사이즈를 반환한다(margin 사이즈 제외)
+     * 만약 두 번째 인자값이 true 일 경우, 적용된 margin 값을 포함한다.
+     */
+    outerHeight(target = null, isMargin = false){
+
+        const height = parseInt(this.prop(target, '@height'));
+        const margin = parseInt(this.prop(target, '@margin-top')) * 2;
+
+        let ret = height;
 
         if (isMargin) ret += margin;
 

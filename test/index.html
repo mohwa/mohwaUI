@@ -36,6 +36,7 @@
   <p><button onclick="SelectText()">Select text</button></p>
 
 <input type="text" id="input_search" />
+<input type="text" id="input_search1" />
 <script type="text/javascript">
 
 function SelectText () {
@@ -57,8 +58,18 @@ function SelectText () {
 //	console.log(position);
 	//p.html( "left: " + offset.left + ", top: " + offset.top );
 
-	new MohwaUI.Input({
+	new MohwaUI.Suggest({
 		el: document.querySelector('#input_search'),
+		data: {
+			url: '/suggest/search'
+		},
+		onSelected: function(){
+			console.log(arguments);
+		}
+	});
+
+	new MohwaUI.Suggest({
+		el: document.querySelector('#input_search1'),
 		data: {
 			url: '/suggest/search'
 		},

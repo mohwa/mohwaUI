@@ -3,18 +3,16 @@
  */
 
 
-const BASE_CLASS = require('./_base');
-
-const BASE = require('../../base');
-const Util = require('../../assets/js/util');
-const Type = require('../../assets/js/type');
+const BASE = require('../base');
+const Util = require('../assets/js/util');
+const Type = require('../assets/js/type');
 
 // 문자 조합/분리 모듈
 const Ganada = require('ganada');
 
 const Mousetrap = require('mousetrap');
 
-const COMPONENT_CLASS_NAME = BASE.componentClassName('auto-suggest');
+const COMPONENT_CLASS_NAME = BASE.componentClassName('suggest');
 
 // 전역 클래스 객체
 const CLASS_NAME = {
@@ -24,11 +22,10 @@ const CLASS_NAME = {
 };
 
 
-
 /**
- *
+ * Suggest Class
  */
-class Input extends BASE_CLASS {
+class Suggest{
 
     constructor({
         el = null,
@@ -36,15 +33,13 @@ class Input extends BASE_CLASS {
         onSelected = function(){}
     } = {}){
 
-        super();
-
         this.opts = {
             el,
             data,
             onSelected
         };
 
-        this.data = _getData.call(this).then(res => {
+        this.data = _getSearchData.call(this).then(res => {
 
             this.data = res.data;
             this.init();
@@ -54,7 +49,9 @@ class Input extends BASE_CLASS {
         });
 
         this.component = null;
-        this.searchText = '';
+
+        this.tmpSearchText = '';
+
         this.activeItem = null;
         this.activeState = 'BOF';
     }
@@ -63,15 +60,7 @@ class Input extends BASE_CLASS {
         const root = this.opts.el;
         const component = this.component = _createElement();
 
-        // root 엘리먼트의 절대 수치
-        const offset = Util.offset(root);
-
-        const width = Util.prop(root, '@width');
-
-        Util.prop(component, {
-            '@width': width,
-            '@left': `${offset.left}px`
-        });
+        _setSearchListPosition.call(this);
 
         Util.after(root, component);
 
@@ -119,7 +108,7 @@ function _addEventListener(){
         const el = e.target;
         const val = el.value;
 
-        this.searchText = val;
+        this.tmpSearchText = val;
 
         if (!Util.equal(tmpValue, val)){
 
@@ -133,7 +122,7 @@ function _addEventListener(){
             _clearSearchList(ul);
             _clearActiveData.call(this);
 
-            Util.prop(ul, 'innerHTML', _getSearchData(val, this.data).join(''));
+            Util.prop(ul, 'innerHTML', _getSearchList(val, this.data).join(''));
 
             _show.call(this);
         }
@@ -181,6 +170,32 @@ function _addEventListener(){
 
 /**
  *
+ * 검색 리스트의 사이즈/위치를 설정한다.
+ *
+ * @private
+ */
+function _setSearchListPosition(){
+
+    const root = this.opts.el;
+    const component = this.component;
+
+    // root 엘리먼트의 절대 수치
+    const offset = Util.offset(root);
+
+    const width = Util.outerWidth(root);
+    const height = Util.outerHeight(root);
+
+    const top = offset.top + height;
+
+    Util.prop(component, {
+        '@width': `${width}px`,
+        '@top': `${top}px`,
+        '@left': `${offset.left}px`
+    });
+}
+
+/**
+ *
  * @private
  */
 function _show(){
@@ -221,15 +236,16 @@ function _moveInputCursor(){
         root.setSelectionRange(root.value.length, root.value.length);
     });
 }
+
 /**
  *
- * @param e
  * @private
  */
 function _up(e = {}){
 
     const root = this.opts.el;
     const activeState = this.activeState;
+    const tmpSearchText = this.tmpSearchText;
 
     let el = this.activeItem;
     let li = null;
@@ -255,7 +271,7 @@ function _up(e = {}){
         this.activeItem = li;
     }
     else{
-        Util.prop(root, 'value', this.searchText);
+        Util.prop(root, 'value', tmpSearchText);
         this.activeState = 'BOF';
     }
 
@@ -264,13 +280,13 @@ function _up(e = {}){
 
 /**
  *
- * @param e
  * @private
  */
 function _down(e = {}){
 
     const root = this.opts.el;
     const el = this.activeItem;
+    const tmpSearchText = this.tmpSearchText;
     const activeState = this.activeState;
 
     if (activeState === 'BOF'){
@@ -305,7 +321,7 @@ function _down(e = {}){
         }
         else{
 
-            Util.prop(root, 'value', this.searchText);
+            Util.prop(root, 'value', tmpSearchText);
             this.activeState = 'EOF';
         }
     }
@@ -334,7 +350,7 @@ function _clearActiveData(){
  *
  * @returns {Promise}
  */
-function _getData(){
+function _getSearchData(){
 
     const data = this.opts.data;
 
@@ -368,7 +384,7 @@ function _getData(){
  * @returns {Array}
  * @private
  */
-function _getSearchData(val = '', data = []){
+function _getSearchList(val = '', data = []){
 
     let ret = [];
 
@@ -393,4 +409,4 @@ function _getSearchData(val = '', data = []){
 }
 
 
-module.exports = Input;
+module.exports = Suggest;
