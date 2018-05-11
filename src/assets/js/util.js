@@ -26,7 +26,9 @@ const Util = {
 
         const el = document.createElement(tagName);
 
-        return this.prop(el, prop);
+        this.prop(el, prop);
+
+        return el;
     },
     /**
      * 엘리먼트 어트리뷰트를 할당한다.
@@ -41,13 +43,13 @@ const Util = {
 
             ret = target;
         }
-        else if (Type.isString(attr) && !Type.isEmpty(val)){
-            ret = _attr(target, attr, val);
-        }
-        else if (Type.isString(attr)){
+        else if (Type.isString(attr) && Type.isEmpty(val)){
 
             if (_isStyleMarked(attr)) ret = target.style[attr.substr(1)];
             else ret = target.getAttribute(attr);
+        }
+        else if (Type.isString(attr) && !Type.isEmpty(val)){
+            ret = _attr(target, attr, val);
         }
 
         return ret;
@@ -132,7 +134,7 @@ const Util = {
 
         el.forEach(v => { parent.appendChild(v); });
 
-        return parent;
+        return this;
     },
     /**
      * 부모 엘리먼트의 첫번째 자식으로 새로운 엘리먼트를 추가한다.
@@ -141,12 +143,12 @@ const Util = {
 
         el = Type.isArray(el) ? el : [el];
 
-        // 전달받은 배열을 리버스시킨후 다시 할당한다(전달받은 순서로 할당시키기위함)
+        // 전달받은 배열 요소를 리버스시킨후, 할당시킨다(사용자에게 전달받은 요소 순서를 그대로 할당시키기위함이다)
         el.reverse().forEach(v => {
             parent.insertBefore(v, parent.firstChild);
         });
 
-        return parent;
+        return this;
     },
     /**
      * target 엘리먼트의 이전 형제로 새로운 엘리먼트를 추가한다.
@@ -157,7 +159,7 @@ const Util = {
 
         el.reverse().forEach(v => { target.parentNode.insertBefore(v, target); });
 
-        return target;
+        return this;
     },
     /**
      * target 엘리먼트의 다음 형제로 새로운 엘리먼트를 추가한다.
@@ -179,10 +181,10 @@ const Util = {
             else target.parentNode.appendChild(v);
         });
 
-        return target;
+        return this;
     },
     /**
-     * 전달받은 엘리먼트의, 절대 좌표들을 반환한다.
+     * 전달받은 엘리먼트의, 절대 좌표를 반환한다.
      */
     offset(target = null){
 
@@ -190,29 +192,56 @@ const Util = {
         return target.getBoundingClientRect();
     },
     /**
-     * 전달받은 엘리먼트의, (부모 엘리먼트를 기준으로한)상대 좌표들을 반환한다.
+     * 전달받은 엘리먼트의 (부모 엘리먼트를 기준으로한)상대 좌표를 반환한다.
      */
     position(target = null){
 
-        let top = 0;
         let left = 0;
+        let top = 0;
+
+        let x = 0;
+        let y = 0;
 
         const parentNode = target.parentNode;
 
-        // 부모 엘리먼트의 position 값이 `static` 이 아닌경우...
-        // 부모 엘리먼트의 position 값이, `static` 이 아닌경우, 자식 엘리먼트의 좌표는 부모 엘리먼트를 기준으로 정해지게된다.
-        // 즉 부모 엘리먼트의 position 값이, `static` 이 아닌경우, 자식 엘리먼트의 offsetTop, offsetLeft 값은 부모 엘리먼트의 위치를 기준으로 반환한다.
+        // 부모 엘리먼트의 position 값이, `static` 이 아닌경우(absolute, relative, fixed 등), 자식 엘리먼트의 좌표는 그 부모 엘리먼트를 기준으로 정해지게된다.
+        // 즉 자식 엘리먼트의 offsetTop, offsetLeft 값은 부모 엘리먼트의 상대적 위치를 기준으로 반환된다.
+
         // 즉 this.offset(target).top - this.offset(parentNode).top <-- 이 공식과 같다.
-        if (target.parentNode === target.offsetParent){
-            top = target.offsetTop;
-            left = target.offsetLeft;
+        if (parentNode === target.offsetParent){
+            x = left = target.offsetLeft;
+            y = top = target.offsetTop;
         }
         else{
-            top = this.offset(target).top - this.offset(parentNode).top;
-            left = this.offset(target).left - this.offset(parentNode).left;
+
+            let targetLeft = this.offset(target).left;
+            let parentLeft = this.offset(parentNode).left;
+
+            let targetTop = this.offset(target).top;
+            let parentTop = this.offset(parentNode).top;
+
+            if (targetLeft > parentLeft){
+                x = left = this.offset(target).left - this.offset(parentNode).left;
+            }
+
+            if (targetTop > parentTop){
+                y = top = this.offset(target).top - this.offset(parentNode).top;
+            }
         }
 
+        const width = this.outerWidth(target);
+        const height = this.outerHeight(target);
+
+        const right = left + width;
+        const bottom = top + height;
+
         return {
+            x,
+            y,
+            right,
+            bottom,
+            width,
+            height,
             top,
             left
         };
@@ -222,9 +251,9 @@ const Util = {
      */
     width(target = null){
 
-        const width = parseInt(this.prop(target, '@width'));
-        const padding = parseInt(this.prop(target, '@padding-left')) * 2;
-        const border = parseInt(this.prop(target, '@border-width')) * 2;
+        const width = parseFloat(this.prop(target, '@width')) || 0;
+        const padding = parseFloat(this.prop(target, '@padding-left')) * 2;
+        const border = parseFloat(this.prop(target, '@border-width')) * 2;
 
         return width - (padding + border);
     },
@@ -233,8 +262,8 @@ const Util = {
      */
     innerWidth(target = null){
 
-        const width = parseInt(this.prop(target, '@width'));
-        const border = parseInt(this.prop(target, '@border-width')) * 2;
+        const width = parseFloat(this.prop(target, '@width')) || 0;
+        const border = parseFloat(this.prop(target, '@border-width')) * 2;
 
         return width - border;
     },
@@ -244,8 +273,8 @@ const Util = {
      */
     outerWidth(target = null, isMargin = false){
 
-        const width = parseInt(this.prop(target, '@width'));
-        const margin = parseInt(this.prop(target, '@margin-top')) * 2;
+        const width = parseFloat(this.prop(target, '@width')) || 0;
+        const margin = parseFloat(this.prop(target, '@margin-top')) * 2;
 
         let ret = width;
 
@@ -258,9 +287,9 @@ const Util = {
      */
     height(target = null){
 
-        const height = parseInt(this.prop(target, '@height'));
-        const padding = parseInt(this.prop(target, '@padding-top')) * 2;
-        const border = parseInt(this.prop(target, '@border-width')) * 2;
+        const height = parseFloat(this.prop(target, '@height')) || 0;
+        const padding = parseFloat(this.prop(target, '@padding-top')) * 2;
+        const border = parseFloat(this.prop(target, '@border-width')) * 2;
 
         return height - (padding + border);
     },
@@ -269,8 +298,8 @@ const Util = {
      */
     innerHeight(target = null){
 
-        const height = parseInt(this.prop(target, '@height'));
-        const border = parseInt(this.prop(target, '@border-width')) * 2;
+        const height = parseFloat(this.prop(target, '@height')) || 0;
+        const border = parseFloat(this.prop(target, '@border-width')) * 2;
 
         return height - border;
     },
@@ -280,8 +309,8 @@ const Util = {
      */
     outerHeight(target = null, isMargin = false){
 
-        const height = parseInt(this.prop(target, '@height'));
-        const margin = parseInt(this.prop(target, '@margin-top')) * 2;
+        const height = parseFloat(this.prop(target, '@height')) || 0;
+        const margin = parseFloat(this.prop(target, '@margin-top')) * 2;
 
         let ret = height;
 
@@ -297,7 +326,7 @@ const Util = {
 
         let next = (target && target.nextSibling) ? target.nextSibling : null;
 
-        // <p>, <div> 와 같은 엘리먼트가 탐색될 경우, 해당 엘리먼트를 반환한다.
+        // <p>, <div> 와 같은 `엘리먼트 노드` 타입이 탐색될 경우, 해당 엘리먼트를 반환한다.
         while (next && next.nodeType !== ELEMENT_NODE){
             next = next.nextSibling;
         }
