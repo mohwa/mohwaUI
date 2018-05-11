@@ -340,7 +340,7 @@ const Util = {
 
         let prev = (target && target.previousSibling) ? target.previousSibling : null;
 
-        // <p>, <div> 와 같은 엘리먼트가 탐색될 경우, 해당 엘리먼트를 반환한다.
+        // <p>, <div> 와 같은 `엘리먼트 노드` 타입이 탐색될 경우, 해당 엘리먼트를 반환한다.
         while (prev && prev.nodeType !== ELEMENT_NODE){
             prev = prev.previousSibling;
         }
@@ -348,7 +348,7 @@ const Util = {
         return prev;
     },
     /**
-     * 모든 부모 엘리먼트를 가져온다.
+     * target 엘리먼트의 모든 부모 엘리먼트를 가져온다.
      */
     parents(target = null, selector = ''){
 
@@ -373,7 +373,7 @@ const Util = {
         return ret;
     },
     /**
-     * 모든 부모 엘리먼트를 가져온다.
+     * target 엘리먼트의 부모 엘리먼트를 가져온다.
      */
     parent(target = null, selector = ''){
 
@@ -400,7 +400,7 @@ const Util = {
         return ret;
     },
     /**
-     * 자식 엘리먼트를 반환한다.
+     * target 엘리먼트의 모든 자식 엘리먼트를 반환한다.
      */
     children(target = null, selector = ''){
 
@@ -411,9 +411,8 @@ const Util = {
 
         const all = selector ? this.nodeListToArray(this.sels(selector)) : [];
 
-        // 자식 엘리먼트가 있을때까지
+        // 자식 엘리먼트가 존재할때까지
         while (child = children.shift()){
-
 
             // <p>, <div> 와 같은 엘리먼트가 탐색될 경우, 해당 엘리먼트를 반환한다.
             if (child.nodeType === ELEMENT_NODE){
@@ -451,24 +450,27 @@ const Util = {
     /**
      * nodeList 객체를 배열로 변환한다.
      */
-    nodeListToArray(target = null){
+    nodeListToArray(nodeList = null){
 
         const ret = [];
 
-        target.forEach(v => { ret.push(v); });
-
-        return ret;
-    },
-    objectToArray(v = {}){
-
-        const ret = [];
-
-        Object.keys(v).map((k) => { ret.push(v[k]); });
+        nodeList.forEach(v => { ret.push(v); });
 
         return ret;
     },
     /**
-     *
+     * object 객체를 배열 객체로 변환 후, 반환한다.
+     */
+    objectToArray(v = {}){
+
+        const ret = [];
+
+        Object.keys(v).map(k => { ret.push(v[k]); });
+
+        return ret;
+    },
+    /**
+     * 전달받은 두 값이 동일한지 유/무를 반환한다.
      */
     equal(val = null, val2 = null){
         return val === val2;
