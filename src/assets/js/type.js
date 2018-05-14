@@ -16,6 +16,12 @@ const Type = {
         return typeof v === 'function';
     },
     /**
+     *
+     */
+    isNull(v){
+        return v === null;
+    },
+    /**
      * 배열 타입 여부를 반환한다.
      */
     isArray(v = null){
@@ -34,7 +40,8 @@ const Type = {
         return v === undefined ||
         v === null ||
         v === false ||
-        v === 0;
+        v === 0 ||
+        v === '';
     }
 };
 

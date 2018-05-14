@@ -30,12 +30,14 @@ class Suggest{
     constructor({
         el = null,
         data = [],
+        onEnter = function(){},
         onSelected = function(){}
     } = {}){
 
         this.opts = {
             el,
             data,
+            onEnter,
             onSelected
         };
 
@@ -103,27 +105,28 @@ function _addEventListener(){
 
     Util.prop(root, 'addEventListener', ['keyup', e => {
 
-        if (_isPreventKeyCode(e)) return false;
-
         const el = e.target;
         const val = el.value;
 
+        if (_isPreventKeyCode.call(this, e)) return false;
+
         this.tmpSearchText = val;
 
-        if (!Util.equal(tmpValue, val)){
+        if (Type.isEmpty(val)){
+            _hide.call(this);
+            return;
+        }
 
-            if (Type.isEmpty(val)){
-                _hide.call(this);
-                return;
-            }
+        tmpValue = val;
 
-            tmpValue = val;
+        _clearSearchList(ul);
+        _clearActiveData.call(this);
 
-            _clearSearchList(ul);
-            _clearActiveData.call(this);
+        const searchList = _getSearchList(val, this.data);
 
-            Util.prop(ul, 'innerHTML', _getSearchList(val, this.data).join(''));
+        if (searchList.length){
 
+            Util.prop(ul, 'innerHTML', searchList.join(''));
             _show.call(this);
         }
     }]);
@@ -133,21 +136,13 @@ function _addEventListener(){
         const el = e.target;
         const nodeName = el.nodeName.toLowerCase();
 
-        if (nodeName === 'a' || nodeName === 'span'){
+        if (nodeName === 'li'){
 
-            const li = Util.parents(el, 'li')[0];
+            const selectedText = Util.prop(el, 'innerText');
 
-            const selectedText = Util.prop(li, 'innerText');
-
-            this.opts.onSelected.call(this, li);
+            this.opts.onSelected.call(this, el);
 
             Util.prop(root, 'value', selectedText);
-
-            _clearSearchList(ul);
-
-            _hide.call(this);
-
-            root.focus();
         }
     }]);
 
@@ -161,11 +156,13 @@ function _addEventListener(){
         }
     }]);
 
-    Mousetrap(root).bind('up', (e) => {_up.call(this, e); });
-    Mousetrap(root).bind('down', (e) => {_down.call(this, e); });
+    Mousetrap(root).bind('up', (e) => { _up.call(this, e); });
+    Mousetrap(root).bind('down', (e) => { _down.call(this, e); });
+    Mousetrap(root).bind('tab', (e) => { _hide.call(this); });
 
-    Mousetrap(searchList).bind('up', (e) => {_up.call(this, e); });
-    Mousetrap(searchList).bind('down', (e) => {_down.call(this, e); });
+    Mousetrap(searchList).bind('up', (e) => { _up.call(this, e); });
+    Mousetrap(searchList).bind('down', (e) => { _down.call(this, e); });
+
 }
 
 /**
@@ -213,14 +210,19 @@ function _hide(){
 /**
  *
  * @param e
+ * @returns {boolean}
  * @private
  */
 function _isPreventKeyCode(e = {}){
 
     let keyCode = e.keyCode;
 
-    return keyCode >= 37 && keyCode <= 40;
+    return keyCode === 37 ||
+    keyCode === 38 ||
+    keyCode === 39 ||
+    keyCode === 40;
 }
+
 
 /**
  *
@@ -231,6 +233,7 @@ function _moveInputCursor(){
     const root = this.opts.el;
 
     window.setTimeout(() => {
+
         // 커서의 위치를 이동시키기위해, start, end 위치를 동일하게 전달한다.
         // https://developer.mozilla.org/en-US/docs/Web/API/HTMLInputElement/setSelectionRange
         root.setSelectionRange(root.value.length, root.value.length);
@@ -244,10 +247,15 @@ function _moveInputCursor(){
 function _up(e = {}){
 
     const root = this.opts.el;
+
+    if (Type.isEmpty(root.value)) return;
+
+    _show.call(this);
+
     const activeState = this.activeState;
     const tmpSearchText = this.tmpSearchText;
 
-    let el = this.activeItem;
+    let el = this.activeItem || e.target;
     let li = null;
 
     if (activeState === 'EOF'){
@@ -258,14 +266,15 @@ function _up(e = {}){
         li = Util.prev(el);
     }
 
-    Util.prop(Util.sel('a', el), 'className', '');
+    if (activeState !== 'BOF'){
+        Util.prop(el, 'className', 'blur');
+    }
 
     if (li){
 
-        const a = Util.sel('a', li);
-        const text = Util.prop(a, 'innerText');
+        const text = Util.prop(li, 'innerText');
 
-        Util.prop(a, 'className', 'focus');
+        Util.prop(li, 'className', 'focus');
         Util.prop(root, 'value', text);
 
         this.activeItem = li;
@@ -285,36 +294,42 @@ function _up(e = {}){
 function _down(e = {}){
 
     const root = this.opts.el;
-    const el = this.activeItem;
+
+    if (Type.isEmpty(root.value)) return;
+
+    _show.call(this);
+
+    const el = this.activeItem || e.target;
     const tmpSearchText = this.tmpSearchText;
     const activeState = this.activeState;
 
     if (activeState === 'BOF'){
 
-        const children = el || Util.children(Util.next(e.target), 'li');
+        const children = this.activeItem || Util.children(Util.next(el), 'li');
 
-        let li = this.activeItem = children.length ? children[0] : children;
-
-        const a = Util.sel('a', li);
-        const text = Util.prop(a, 'innerText');
-
-        Util.prop(a, 'className', 'focus');
-        Util.prop(root, 'value', text);
-
-        this.activeState = 'BODY';
-    }
-    else{
-
-        let li = Util.next(el);
-
-        Util.prop(Util.sel('a', el), 'className', '');
+        let li = this.activeItem = Type.isArray(children) ? children[0] : children;
 
         if (li){
 
-            const a = Util.sel('a', li);
-            const text = Util.prop(a, 'innerText');
+            const text = Util.prop(li, 'innerText');
 
-            Util.prop(a, 'className', 'focus');
+            Util.prop(li, 'className', 'focus');
+            Util.prop(root, 'value', text);
+
+            this.activeState = 'BODY';
+        }
+    }
+    else{
+
+        const li = Util.next(el);
+
+        Util.prop(el, 'className', 'blur');
+
+        if (li){
+
+            const text = Util.prop(li, 'innerText');
+
+            Util.prop(li, 'className', 'focus');
             Util.prop(root, 'value', text);
 
             this.activeItem = li;
@@ -401,7 +416,7 @@ function _getSearchList(val = '', data = []){
                 return `<span class="${CLASS_NAME.highlightWord}">${match}</span>`;
             });
 
-            ret.push(`<li><a href="#" onclick="return false" tabindex="0">${v}</a></li>`);
+            ret.push(`<li>${v}</li>`);
         }
     });
 

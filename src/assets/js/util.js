@@ -43,12 +43,12 @@ const Util = {
 
             ret = target;
         }
-        else if (Type.isString(attr) && Type.isEmpty(val)){
+        else if (Type.isString(attr) && Type.isNull(val)){
 
             if (_isStyleMarked(attr)) ret = target.style[attr.substr(1)];
             else ret = target.getAttribute(attr);
         }
-        else if (Type.isString(attr) && !Type.isEmpty(val)){
+        else if (Type.isString(attr)){
             ret = _attr(target, attr, val);
         }
 
@@ -84,7 +84,7 @@ const Util = {
 
             ret = target;
         }
-        else if (Type.isString(prop) && Type.isEmpty(val)){
+        else if (Type.isString(prop) && Type.isNull(val)){
 
             if (_isStyleMarked(prop)){
                 // 계산되어 정의된 스타일 정보를 가져온다.
@@ -94,7 +94,7 @@ const Util = {
                 ret = target[prop];
             }
         }
-        else if (Type.isString(prop) && !Type.isEmpty(val)){
+        else if (Type.isString(prop)){
             ret = _prop(target, prop, val);
         }
 
