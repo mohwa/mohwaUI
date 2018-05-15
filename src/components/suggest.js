@@ -381,9 +381,9 @@ function _getFirstListElement(){
  */
 function _getLastListElement(){
 
-    const els = Util.sels('li', this.component);
+    const elems = Util.sels('li', this.component);
 
-    return els[els.length - 1];
+    return elems[elems.length - 1];
 }
 /**
  *
