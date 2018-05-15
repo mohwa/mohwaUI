@@ -20,11 +20,6 @@
 	text-overflow: ellipsis;
 	white-space: nowrap;
 
-	.highlight-word{
-	  color:red;
-	  font-weight: bold
-	}
-
 	ul{
 	  //list-style: none;
 	}
@@ -34,11 +29,9 @@
 	  width: 100%;
 	  height: 20px;
 
-	  cursor: pointer;
+	  line-height: 20px;
 
-	  &:hover{
-	  	background: #f3f0f0;
-	  }
+	  display: list-item;
 
 	  &:hover{
 	  	background: #f3f0f0;
@@ -50,6 +43,10 @@
 
 	  &.blur{
 		background: #fff;
+	  }
+
+	  a {
+	  	outline: none;
 	  }
 	}
   }

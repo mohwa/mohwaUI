@@ -38,12 +38,10 @@ button {
 a, a:link, a:visited, a:active {
     text-decoration: none; }
 
-a { color: #757575; }
-
 * { box-sizing: border-box; }
 
 /* placeholder */
-::-webkit-input-placeholder { color: #ccc; }
-:-moz-placeholder { color: #ccc; }
-::-moz-placeholder { color: #ccc; }
-:-ms-input-placeholder { color: #ccc !important; }
+//::-webkit-input-placeholder { color: #ccc; }
+//:-moz-placeholder { color: #ccc; }
+//::-moz-placeholder { color: #ccc; }
+//:-ms-input-placeholder { color: #ccc !important; }

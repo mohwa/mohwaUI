@@ -10,6 +10,9 @@ const Type = require('../assets/js/type');
 // 문자 조합/분리 모듈
 const Ganada = require('ganada');
 
+// ajax 라이브러리
+const axios = require('axios');
+
 const Mousetrap = require('mousetrap');
 
 const COMPONENT_CLASS_NAME = BASE.componentClassName('suggest');
@@ -28,19 +31,20 @@ const CLASS_NAME = {
 class Suggest{
 
     constructor({
-        el = null,
+        elem = null,
         data = [],
-        onEnter = function(){},
+        onEnter = null,
         onSelected = function(){}
     } = {}){
 
         this.opts = {
-            el,
+            elem,
             data,
             onEnter,
             onSelected
         };
 
+        // 데이터를 바인딩한다.
         this.data = _getSearchData.call(this).then(res => {
 
             this.data = res.data;
@@ -50,16 +54,18 @@ class Suggest{
             console.error(err);
         });
 
+        // 컴포넌트 엘리먼트
         this.component = null;
 
-        this.tmpSearchText = '';
+        // 임시 검색된 문자열
+        this.searchedText = '';
 
-        this.activeItem = null;
-        this.activeState = 'BOF';
+        // 활성화된 아이템
+        this.activedItem = null;
     }
     init(){
 
-        const root = this.opts.el;
+        const root = this.opts.elem;
         const component = this.component = _createElement();
 
         _setSearchListPosition.call(this);
@@ -71,6 +77,7 @@ class Suggest{
 }
 
 /**
+ * 컴포넌트 엘리먼트 객체를 반환한다.
  *
  * @returns {*}
  * @private
@@ -91,77 +98,96 @@ function _createElement(){
 
 /**
  *
+ * 필요 이벤트들을 바인딩한다.
+ *
  * @private
  */
 function _addEventListener(){
 
-    const root = this.opts.el;
+    const root = this.opts.elem;
     const component = this.component;
 
-    const searchList = Util.sel('.search-list', component);
-    const ul = Util.sel('ul', searchList);
-
-    let tmpValue = '';
+    const ul = Util.sel('ul', component);
 
     Util.prop(root, 'addEventListener', ['keyup', e => {
 
-        const el = e.target;
-        const val = el.value;
+        const elem = e.target;
+        const keyCode = e.keyCode;
 
-        if (_isPreventKeyCode.call(this, e)) return false;
+        const val = elem.value;
+        const onEnter = this.opts.onEnter;
 
-        this.tmpSearchText = val;
+        // 정의된 키코드를 막는다.
+        if (_isPreventKeyCode.call(this, e)) return;
 
+        // `enter` 키 처리.
+        if (keyCode === 13 && Type.isFunction(onEnter)){
+            onEnter.call(this, val);
+            return;
+        }
+
+        // 공백 처리
         if (Type.isEmpty(val)){
             _hide.call(this);
             return;
         }
 
-        tmpValue = val;
+        this.searchedText = val;
 
-        _clearSearchList(ul);
-        _clearActiveData.call(this);
+        _clearSearchedList(ul);
+        
+        // 검색 리스트를 반환한다.
+        const list = _createSearchList(val, this.data);
 
-        const searchList = _getSearchList(val, this.data);
+        if (list.length){
 
-        if (searchList.length){
+            Util.prop(ul, 'innerHTML', list.join(''));
 
-            Util.prop(ul, 'innerHTML', searchList.join(''));
             _show.call(this);
         }
     }]);
 
+
     Util.prop(ul, 'addEventListener', ['click', e => {
 
-        const el = e.target;
-        const nodeName = el.nodeName.toLowerCase();
+        const elem = e.target;
+        const nodeName = elem.nodeName.toLowerCase();
+        const activeItem = this.activedItem;
 
-        if (nodeName === 'li'){
+        const li = (nodeName === 'a' || nodeName === 'span') ? Util.parents(elem, 'li')[0] : elem;
 
-            const selectedText = Util.prop(el, 'innerText');
+        const text = _getElemText(li);
 
-            this.opts.onSelected.call(this, el);
+        this.opts.onSelected.call(this, text);
 
-            Util.prop(root, 'value', selectedText);
-        }
+        if (activeItem) _addBlurClassName(activeItem);
+
+        _addFocusClassName(li);
+
+        Util.sel('a', li).focus();
+
+        Util.prop(root, 'value', text);
+
+        this.activedItem = li;
     }]);
 
     // 문서 엘리먼트를 클릭한 경우.
     Util.prop(document, 'addEventListener', ['click', e => {
 
-        const el = e.target;
+        const elem = e.target;
 
-        if (!Util.parents(el, `.${COMPONENT_CLASS_NAME}`).length){
-            _hide.call(this);
-        }
+        if (_isClose(elem)) _hide.call(this);
+
     }]);
 
-    Mousetrap(root).bind('up', (e) => { _up.call(this, e); });
-    Mousetrap(root).bind('down', (e) => { _down.call(this, e); });
-    Mousetrap(root).bind('tab', (e) => { _hide.call(this); });
+    Mousetrap(root).bind('up', e => { _up.call(this, e); });
+    Mousetrap(root).bind('down', e => { _down.call(this, e); });
 
-    Mousetrap(searchList).bind('up', (e) => { _up.call(this, e); });
-    Mousetrap(searchList).bind('down', (e) => { _down.call(this, e); });
+    Mousetrap(ul).bind('up', e => { _up.call(this, e); });
+    Mousetrap(ul).bind('down', e => { _down.call(this, e); });
+
+    Mousetrap(root).bind('tab', e => { _hide.call(this); });
+    Mousetrap(ul).bind('tab', e => { _hide.call(this); });
 
 }
 
@@ -173,10 +199,10 @@ function _addEventListener(){
  */
 function _setSearchListPosition(){
 
-    const root = this.opts.el;
+    const root = this.opts.elem;
     const component = this.component;
 
-    // root 엘리먼트의 절대 수치
+    // root 엘리먼트의 절대 수치를 반환한다.
     const offset = Util.offset(root);
 
     const width = Util.outerWidth(root);
@@ -193,6 +219,8 @@ function _setSearchListPosition(){
 
 /**
  *
+ * component 엘리먼트를 show 시킨다.
+ *
  * @private
  */
 function _show(){
@@ -201,6 +229,8 @@ function _show(){
 
 /**
  *
+ * component 엘리먼트를 hide 시킨다.
+ *
  * @private
  */
 function _hide(){
@@ -208,6 +238,8 @@ function _hide(){
 }
 
 /**
+ *
+ * 정의된 키코드를 막는다.
  *
  * @param e
  * @returns {boolean}
@@ -226,11 +258,13 @@ function _isPreventKeyCode(e = {}){
 
 /**
  *
+ * input cursor 를 이동시킨다.
+ *
  * @private
  */
 function _moveInputCursor(){
 
-    const root = this.opts.el;
+    const root = this.opts.elem;
 
     window.setTimeout(() => {
 
@@ -242,126 +276,129 @@ function _moveInputCursor(){
 
 /**
  *
+ * 리스트 엘리먼트를 위로 이동시킨다.
+ *
  * @private
  */
 function _up(e = {}){
 
-    const root = this.opts.el;
+    const root = this.opts.elem;
 
     if (Type.isEmpty(root.value)) return;
 
     _show.call(this);
 
-    const activeState = this.activeState;
-    const tmpSearchText = this.tmpSearchText;
+    const searchedText = this.searchedText;
 
-    let el = this.activeItem || e.target;
-    let li = null;
+    const lastElem = _getLastListElement.call(this, 0);
+    const activedItem = this.activedItem;
 
-    if (activeState === 'EOF'){
-        li = el;
-        this.activeState = 'BODY';
-    }
-    else{
-        li = Util.prev(el);
+    const prevElem = Type.isNull(activedItem) ? lastElem : Util.prev(activedItem);
+
+    if (!Type.isNull(activedItem)){
+        _addBlurClassName(activedItem);
     }
 
-    if (activeState !== 'BOF'){
-        Util.prop(el, 'className', 'blur');
-    }
+    if (prevElem){
 
-    if (li){
+        const text = _getElemText(prevElem);
 
-        const text = Util.prop(li, 'innerText');
-
-        Util.prop(li, 'className', 'focus');
+        _addFocusClassName(prevElem);
         Util.prop(root, 'value', text);
 
-        this.activeItem = li;
+        this.activedItem = prevElem;
     }
     else{
-        Util.prop(root, 'value', tmpSearchText);
-        this.activeState = 'BOF';
+
+        Util.prop(root, 'value', searchedText);
+        this.activedItem = null;
     }
 
     _moveInputCursor.call(this);
 }
 
 /**
+ *
+ * 리스트 엘리먼트를 아래로 이동시킨다.
  *
  * @private
  */
 function _down(e = {}){
 
-    const root = this.opts.el;
+    const root = this.opts.elem;
 
     if (Type.isEmpty(root.value)) return;
 
     _show.call(this);
 
-    const el = this.activeItem || e.target;
-    const tmpSearchText = this.tmpSearchText;
-    const activeState = this.activeState;
+    const firstElem = _getFirstListElement.call(this);
+    const activedItem = this.activedItem;
 
-    if (activeState === 'BOF'){
+    const nextElem = Type.isNull(activedItem) ? firstElem : Util.next(activedItem);
 
-        const children = this.activeItem || Util.children(Util.next(el), 'li');
+    const searchedText = this.searchedText;
 
-        let li = this.activeItem = Type.isArray(children) ? children[0] : children;
+    if (!Type.isNull(activedItem)){
+        _addBlurClassName(activedItem);
+    }
 
-        if (li){
+    if (nextElem){
 
-            const text = Util.prop(li, 'innerText');
+        const text = _getElemText(nextElem);
 
-            Util.prop(li, 'className', 'focus');
-            Util.prop(root, 'value', text);
+        _addFocusClassName(nextElem);
+        Util.prop(root, 'value', text);
 
-            this.activeState = 'BODY';
-        }
+        this.activedItem = nextElem;
     }
     else{
 
-        const li = Util.next(el);
-
-        Util.prop(el, 'className', 'blur');
-
-        if (li){
-
-            const text = Util.prop(li, 'innerText');
-
-            Util.prop(li, 'className', 'focus');
-            Util.prop(root, 'value', text);
-
-            this.activeItem = li;
-        }
-        else{
-
-            Util.prop(root, 'value', tmpSearchText);
-            this.activeState = 'EOF';
-        }
+        Util.prop(root, 'value', searchedText);
+        this.activedItem = null;
     }
 
     _moveInputCursor.call(this);
 }
+
 /**
+ *
+ * 시작 리스트 엘리먼트를 반환한다.
+ *
+ * @returns {*}
+ * @private
+ */
+function _getFirstListElement(){
+
+    return Util.sels('li', this.component)[0];
+}
+
+/**
+ *
+ * 마지막 리스트 엘리먼트를 반환한다.
+ *
+ * @returns {*}
+ * @private
+ */
+function _getLastListElement(){
+
+    const els = Util.sels('li', this.component);
+
+    return els[els.length - 1];
+}
+/**
+ *
+ * 검색된 리스트를 삭제한다.
  *
  * @param ul
  */
-function _clearSearchList(ul = null){
+function _clearSearchedList(ul = null){
     Util.prop(ul, 'innerHTML', '');
 }
 
+
 /**
  *
- * @private
- */
-function _clearActiveData(){
-
-    this.activeItem = null;
-    this.activeState = 'BOF';
-}
-
-/**
+ * 바인딩할 데이터를 반환한다.
  *
  * @returns {Promise}
  */
@@ -394,12 +431,14 @@ function _getSearchData(){
 
 /**
  *
+ * 리스트 엘리먼트 집합을 반환한다.
+ *
  * @param val
  * @param data
  * @returns {Array}
  * @private
  */
-function _getSearchList(val = '', data = []){
+function _createSearchList(val = '', data = []){
 
     let ret = [];
 
@@ -413,14 +452,64 @@ function _getSearchList(val = '', data = []){
 
             v = v.replace(ptn, match => {
 
-                return `<span class="${CLASS_NAME.highlightWord}">${match}</span>`;
+                return `<b>${match}</b>`;
             });
 
-            ret.push(`<li>${v}</li>`);
+            ret.push(`<li><a href="#" tabindex="0" onclick="return false">${v}</a></li>`);
         }
     });
 
     return ret;
+}
+
+/**
+ *
+ * 전달받은 엘리먼트에 blur 클래스를 할당한다.
+ *
+ * @param elem
+ * @private
+ */
+function _addBlurClassName(elem = null){
+    Util.prop(elem, 'className', 'blur');
+}
+
+/**
+ *
+  * 전달받은 엘리먼트에 focus 클래스를 할당한다.
+ *
+ * @param elem
+ * @private
+ */
+function _addFocusClassName(elem = null){
+    Util.prop(elem, 'className', 'focus');
+}
+
+/**
+ *
+ * 검색 리스트 닫기 유/무를 반환한다.
+ *
+ * @param elem
+ * @returns {boolean}
+ * @private
+ */
+function _isClose(elem = null){
+
+    const className = `.${COMPONENT_CLASS_NAME}`;
+
+    // 전달받은 엘리먼트가 input 엘리먼트가 아니거나, searchList 엘리먼트가 아닌 경우 true 를 반환한다.
+    return Util.next(elem) !== Util.sel(className) && !Util.parents(elem, className).length;
+}
+
+/**
+ *
+ * 전달받은 엘리먼트의 innerText 를 반환한다.
+ *
+ * @param elem
+ * @returns {*}
+ * @private
+ */
+function _getElemText(elem = null){
+    return Util.prop(elem, 'innerText');
 }
 
 
