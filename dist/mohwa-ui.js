@@ -1999,25 +1999,18 @@ function _addEventListener() {
 
     var root = this.opts.elem;
     var component = this.component;
+    var onEnter = this.opts.onEnter;
 
     var ul = Util.sel('ul', component);
 
     Util.prop(root, 'addEventListener', ['keyup', function (e) {
 
         var elem = e.target;
-        var keyCode = e.keyCode;
 
         var val = elem.value;
-        var onEnter = _this2.opts.onEnter;
 
-        // 정의된 키코드를 막는다.
+        // 정의된 키코드들을 막는다.
         if (_isPreventKeyCode.call(_this2, e)) return;
-
-        // `enter` 키 처리.
-        if (keyCode === 13 && Type.isFunction(onEnter)) {
-            onEnter.call(_this2, val);
-            return;
-        }
 
         // 공백 처리
         if (Type.isEmpty(val)) {
@@ -2046,7 +2039,13 @@ function _addEventListener() {
         var nodeName = elem.nodeName.toLowerCase();
         var activeItem = _this2.activedItem;
 
-        var li = nodeName === 'a' || nodeName === 'span' ? Util.parents(elem, 'li')[0] : elem;
+        // ui 엘리먼트 내부에서 `enter` 키가 눌렸을 경우
+        if (_this2.isEnterKeyDown) {
+            _this2.isEnterKeyDown = false;
+            return;
+        }
+
+        var li = nodeName === 'a' || nodeName === 'b' ? Util.parents(elem, 'li')[0] : elem;
 
         var text = _getElemText(li);
 
@@ -2091,6 +2090,19 @@ function _addEventListener() {
     Mousetrap(ul).bind('tab', function (e) {
         _hide.call(_this2);
     });
+
+    Mousetrap(root).bind('enter', function (e) {
+        enterKeyDown.call(_this2);
+    });
+    Mousetrap(ul).bind('enter', function (e) {
+        _this2.isEnterKeyDown = true;
+        enterKeyDown.call(_this2);
+    });
+
+    function enterKeyDown() {
+        onEnter.call(this, root.value);
+        _hide.call(this);
+    }
 }
 
 /**
@@ -2153,7 +2165,7 @@ function _isPreventKeyCode() {
 
     var keyCode = e.keyCode;
 
-    return keyCode === 37 || keyCode === 38 || keyCode === 39 || keyCode === 40;
+    return keyCode === 13 || keyCode === 37 || keyCode === 38 || keyCode === 39 || keyCode === 40;
 }
 
 /**
@@ -2208,6 +2220,8 @@ function _up() {
         _addFocusClassName(prevElem);
         Util.prop(root, 'value', text);
 
+        //Util.sel('a', prevElem).focus();
+
         this.activedItem = prevElem;
     } else {
 
@@ -2251,6 +2265,8 @@ function _down() {
 
         _addFocusClassName(nextElem);
         Util.prop(root, 'value', text);
+
+        //Util.sel('a', nextElem).focus();
 
         this.activedItem = nextElem;
     } else {

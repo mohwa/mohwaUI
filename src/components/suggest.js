@@ -106,25 +106,18 @@ function _addEventListener(){
 
     const root = this.opts.elem;
     const component = this.component;
+    const onEnter = this.opts.onEnter;
 
     const ul = Util.sel('ul', component);
 
     Util.prop(root, 'addEventListener', ['keyup', e => {
 
         const elem = e.target;
-        const keyCode = e.keyCode;
 
         const val = elem.value;
-        const onEnter = this.opts.onEnter;
 
-        // 정의된 키코드를 막는다.
+        // 정의된 키코드들을 막는다.
         if (_isPreventKeyCode.call(this, e)) return;
-
-        // `enter` 키 처리.
-        if (keyCode === 13 && Type.isFunction(onEnter)){
-            onEnter.call(this, val);
-            return;
-        }
 
         // 공백 처리
         if (Type.isEmpty(val)){
@@ -154,7 +147,13 @@ function _addEventListener(){
         const nodeName = elem.nodeName.toLowerCase();
         const activeItem = this.activedItem;
 
-        const li = (nodeName === 'a' || nodeName === 'span') ? Util.parents(elem, 'li')[0] : elem;
+        // ui 엘리먼트 내부에서 `enter` 키가 눌렸을 경우
+        if (this.isEnterKeyDown){
+            this.isEnterKeyDown = false;
+            return;
+        }
+
+        const li = (nodeName === 'a' || nodeName === 'b') ? Util.parents(elem, 'li')[0] : elem;
 
         const text = _getElemText(li);
 
@@ -189,6 +188,17 @@ function _addEventListener(){
     Mousetrap(root).bind('tab', e => { _hide.call(this); });
     Mousetrap(ul).bind('tab', e => { _hide.call(this); });
 
+    Mousetrap(root).bind('enter', e => { enterKeyDown.call(this);});
+    Mousetrap(ul).bind('enter', e => {
+        this.isEnterKeyDown = true;
+        enterKeyDown.call(this);
+    });
+
+
+    function enterKeyDown(){
+        onEnter.call(this, root.value);
+        _hide.call(this);
+    }
 }
 
 /**
@@ -249,7 +259,8 @@ function _isPreventKeyCode(e = {}){
 
     let keyCode = e.keyCode;
 
-    return keyCode === 37 ||
+    return keyCode === 13 ||
+    keyCode === 37 ||
     keyCode === 38 ||
     keyCode === 39 ||
     keyCode === 40;
@@ -306,6 +317,8 @@ function _up(e = {}){
         _addFocusClassName(prevElem);
         Util.prop(root, 'value', text);
 
+        //Util.sel('a', prevElem).focus();
+
         this.activedItem = prevElem;
     }
     else{
@@ -348,6 +361,8 @@ function _down(e = {}){
 
         _addFocusClassName(nextElem);
         Util.prop(root, 'value', text);
+
+        //Util.sel('a', nextElem).focus();
 
         this.activedItem = nextElem;
     }
