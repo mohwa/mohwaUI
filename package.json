@@ -25,17 +25,16 @@
     "css-loader": "^0.28.11",
     "extract-text-webpack-plugin": "^3.0.2",
     "ganada": "^1.0.1",
-    "hangul-js": "^0.2.4",
     "mousetrap": "^1.6.1",
     "sass-loader": "^7.0.1",
     "style-loader": "^0.21.0",
     "uglifyjs-webpack-plugin": "^1.2.2",
     "webpack": "^3.10.0",
-    "webpack-config": "7.5.0"
+    "webpack-config": "7.5.0",
+    "node-sass": "^4.8.3"
   },
   "devDependencies": {
     "html-webpack-plugin": "^2.30.1",
-    "node-sass": "^4.8.3",
     "webpack-dev-server": "^2.11.1",
     "write-file-webpack-plugin": "^4.2.0"
   },

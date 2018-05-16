@@ -13,9 +13,6 @@ const CleanWebpackPlugin = require('clean-webpack-plugin');
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 
-const defaultCSS = new ExtractTextPlugin('[name].css');
-const minCSS = new ExtractTextPlugin('[name].min.css');
-
 const envConfig = environment.get('config');
 
 const rootPath = path.join(__dirname, '..');
@@ -34,14 +31,7 @@ const config = {
         rules: [
         {
             test: /\.scss$/,
-            use: defaultCSS.extract({
-                fallback: 'style-loader',
-                use: ['css-loader', 'sass-loader']
-            })
-        },
-        {
-            test: /\.scss$/,
-            use: minCSS.extract({
+            use: ExtractTextPlugin.extract({
                 fallback: 'style-loader',
                 use: [
                 {
@@ -56,8 +46,7 @@ const config = {
         new UglifyJsPlugin({
             include: /\.min\.js$/
         }),
-        defaultCSS,
-        minCSS
+        new ExtractTextPlugin('[name].css')
     ]
 };
 
