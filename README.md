@@ -3,4 +3,4 @@
 
 ## Suggest
 
-[데모](http://jsfiddle.net/mohwa/gznkrwjp/7/embedded/result,html,js,css)
+<a href="http://jsfiddle.net/mohwa/gznkrwjp/7/" target="blank">데모 보기</a>
