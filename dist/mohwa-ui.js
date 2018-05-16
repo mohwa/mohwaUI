@@ -2100,8 +2100,11 @@ function _addEventListener() {
     });
 
     function enterKeyDown() {
-        onEnter.call(this, root.value);
-        _hide.call(this);
+
+        if (Type.isFunction(onEnter)) {
+            onEnter.call(this, root.value);
+            _hide.call(this);
+        }
     }
 }
 
