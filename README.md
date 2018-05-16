@@ -49,7 +49,7 @@ const MohwaUI = require('mohwa-ui');
 |Name|Types|Description|
 |:--:|:-----:|:----------|
 |`elem`|`{Element}`|Suggest를 적용할 입력 엘리먼트를 정의한다.|
-|`data`|`{Array|Object}`|검색 데이터 또는 요청할 서버 정보를 정의한다.|
+|`data`|`{Array/Object}`|검색 데이터 또는 요청할 서버 정보를 정의한다.|
 
 이벤트
 
