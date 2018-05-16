@@ -197,10 +197,8 @@ function _addEventListener(){
 
     function enterKeyDown(){
 
-        if (Type.isFunction(onEnter)){
-            onEnter.call(this, root.value);
-            _hide.call(this);
-        }
+        Type.isFunction(onEnter) && onEnter.call(this, root.value);
+        _hide.call(this);
     }
 }
 
