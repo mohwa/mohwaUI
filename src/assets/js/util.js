@@ -122,6 +122,8 @@ const Util = {
                 else target[k] = v;
             }
 
+            console.log(target.style);
+
             return target;
         }
     },
@@ -180,6 +182,16 @@ const Util = {
             if (next) target.parentNode.insertBefore(v, next);
             else target.parentNode.appendChild(v);
         });
+
+        return this;
+    },
+    remove(target = null){
+
+        const parents = this.parent(target);
+
+        if (parents.length){
+            parents[0].removeChild(target);
+        }
 
         return this;
     },

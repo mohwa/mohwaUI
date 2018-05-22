@@ -6,5 +6,6 @@ require('./assets/sass/mohwa-ui.scss');
 
 module.exports = {
     Base: require('./base'),
-    Suggest: require('./components/suggest')
+    Suggest: require('./components/suggest'),
+    Infinity: require('./components/infinity')
 };
