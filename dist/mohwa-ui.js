@@ -16737,7 +16737,8 @@ var COMPONENT_CLASS_NAME = BASE.componentClassName('infinity');
 
 // 전역 클래스 객체
 var CLASS_NAME = {
-    topScrollSpace: 'top-scroll-space'
+    topScrollSpace: 'top-scroll-space',
+    bottomScrollSpace: 'bottom-scroll-space'
 };
 
 /**
@@ -16756,7 +16757,9 @@ var InfinityScroll = function () {
             _ref$height = _ref.height,
             height = _ref$height === undefined ? 30 : _ref$height,
             _ref$pageSize = _ref.pageSize,
-            pageSize = _ref$pageSize === undefined ? 5 : _ref$pageSize;
+            pageSize = _ref$pageSize === undefined ? 5 : _ref$pageSize,
+            _ref$noDataText = _ref.noDataText,
+            noDataText = _ref$noDataText === undefined ? '' : _ref$noDataText;
 
         (0, _classCallCheck3.default)(this, InfinityScroll);
 
@@ -16779,7 +16782,9 @@ var InfinityScroll = function () {
             cols: cols,
             // row 세로 사이즈
             height: height,
-            pageSize: pageSize
+            pageSize: pageSize,
+            // 데이터가 비어있을때 보여줄 텍스트
+            noDataText: noDataText
         };
 
         this.tableBody = tableBody;
@@ -16805,12 +16810,20 @@ var InfinityScroll = function () {
 
             var root = this.opts.elem;
             var tableBody = this.tableBody;
+
+            var data = this.opts.data;
             var height = this.opts.height;
             var pageSize = this.opts.pageSize;
 
-            _createTopScrollSpace.call(this);
+            // 빈 데이터 처리
+            if (!data.length) {
+                _setNoDataText.call(this);
+                return;
+            }
 
+            _createTopScrollSpace.call(this);
             _addRows.call(this, 0, pageSize * 2);
+            _createBottomScrollSpace.call(this);
 
             var tableBodyHeight = parseInt(Util.prop(tableBody, '@height'));
             var rootClassName = Util.prop(root, 'className');
@@ -16824,6 +16837,8 @@ var InfinityScroll = function () {
                 "className": rootClassName + ' ' + COMPONENT_CLASS_NAME,
                 "@height": resolvedHeight + 'px'
             });
+
+            Util.attr(tableBody, 'tabindex', 0);
 
             _addEventListener.call(this);
         }
@@ -16844,7 +16859,47 @@ function _createTopScrollSpace() {
     var tableBody = this.tableBody;
     var html = '<tr class="' + CLASS_NAME.topScrollSpace + '" style="height:0px"></tr>';
 
-    Util.prepend(tableBody, Util.el('tbody', { 'innerHTML': html }).firstChild);
+    Util.prepend(tableBody, Util.el('tbody', { "innerHTML": html }).firstChild);
+}
+
+/**
+ *
+ * (가상)스크롤 영역을 가진 엘리먼트를 추가한다.
+ *
+ * @private
+ */
+
+function _createBottomScrollSpace() {
+    var height = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
+
+
+    var tableBody = this.tableBody;
+    //const _height = this.opts.height;
+
+    var html = '<tr class="' + CLASS_NAME.bottomScrollSpace + '"></tr>';
+
+    var tr = Util.el('tbody', { "innerHTML": html }).firstChild;
+
+    Util.append(tableBody, tr);
+
+    var offset = Util.offset(tr);
+
+    //console.log(offset.y, height, (offset.y - height));
+
+    // 스크롤바를 항상 상위에 위치시키기 위해서는, 전체 데이터 세로 사이즈에 현재 topScrollSpace 세로 사이즈를 빼주면 된다.
+    // 그럼 스크롤이 항상 원하는 위치에 놓을 수 있다.(이로써 데이터의 마지막 부분까지 스크롤할 수 있게 된다)
+    //**************************************************
+    //**************************************************
+    //**************************************************
+    // 현재 누적된 10개 노드에 대한, 세로값도 빼줘야할듯하다!!!!
+    //**************************************************
+    //**************************************************
+    //**************************************************
+    if (this.opts.pageSize * this.opts.height < this.opts.data.length * this.opts.height - height) {
+        Util.prop(tr, '@height', this.opts.data.length * this.opts.height - height + 'px');
+    } else {
+        Util.prop(tr, '@height', '0px');
+    }
 }
 
 /**
@@ -16887,6 +16942,8 @@ function _addEventListener() {
 
             // 새로운 노드들을 추가한다.
             _addRows.call(_this, startIndex, endIndex);
+
+            _createBottomScrollSpace.call(_this, activetedPageNum * pageSize * height);
         }
     }]);
 }
@@ -16930,8 +16987,24 @@ function _addRows() {
 
         html.push('</tr>');
 
-        Util.append(tableBody, Util.el('tbody', { 'innerHTML': html.join('') }).firstChild);
+        Util.append(tableBody, Util.el('tbody', { "innerHTML": html.join('') }).firstChild);
     }
+}
+
+/**
+ *
+ * @private
+ */
+function _setNoDataText() {
+
+    var tableBody = this.tableBody;
+    var noDataText = this.opts.noDataText;
+
+    if (Type.isEmpty(noDataText)) return;
+
+    var html = '<tr class="no-data-text"><td>' + noDataText + '</td></tr>';
+
+    Util.append(tableBody, Util.el('tbody', { "innerHTML": html }).firstChild);
 }
 
 /**
