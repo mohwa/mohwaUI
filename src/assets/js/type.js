@@ -42,6 +42,12 @@ const Type = {
         v === false ||
         v === 0 ||
         v === '';
+    },
+    /**
+     *
+     */
+    isElement(v = null){
+        return v && v.nodeType === Node.ELEMENT_NODE;
     }
 };
 

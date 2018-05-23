@@ -122,8 +122,6 @@ const Util = {
                 else target[k] = v;
             }
 
-            console.log(target.style);
-
             return target;
         }
     },

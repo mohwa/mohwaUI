@@ -62,7 +62,7 @@ a, a:link, a:visited, a:active {
       .-mohwa-ui-suggest .search-list ul li a {
         outline: none; }
 
-.-mohwa-ui-infinity {
+tbody.-mohwa-ui-infinity {
   width: 100%;
   overflow-x: hidden;
   overflow-y: auto;
