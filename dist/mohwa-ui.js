@@ -11644,7 +11644,7 @@ __webpack_require__(81);
 module.exports = {
     Base: __webpack_require__(15),
     Suggest: __webpack_require__(82),
-    Infinity: __webpack_require__(147)
+    InfinityScroll: __webpack_require__(147)
 };
 
 /***/ }),
@@ -16726,7 +16726,7 @@ var _createClass3 = _interopRequireDefault(_createClass2);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 /**
- * Created by mohwa on 2018. 4. 21..
+ * Created by mohwa on 2018. 5. 23..
  */
 
 var BASE = __webpack_require__(15);
@@ -16737,15 +16737,15 @@ var COMPONENT_CLASS_NAME = BASE.componentClassName('infinity');
 
 // 전역 클래스 객체
 var CLASS_NAME = {
-    scrollSpace: 'scroll-space'
+    topScrollSpace: 'top-scroll-space'
 };
 
 /**
- * Infinity Class
+ * InfinityScroll Class
  */
 
-var Infinity = function () {
-    function Infinity() {
+var InfinityScroll = function () {
+    function InfinityScroll() {
         var _ref = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
             _ref$elem = _ref.elem,
             elem = _ref$elem === undefined ? null : _ref$elem,
@@ -16758,28 +16758,39 @@ var Infinity = function () {
             _ref$pageSize = _ref.pageSize,
             pageSize = _ref$pageSize === undefined ? 5 : _ref$pageSize;
 
-        (0, _classCallCheck3.default)(this, Infinity);
+        (0, _classCallCheck3.default)(this, InfinityScroll);
 
 
+        // 전달받은 엘리먼트가 엘리먼트 타입이 아닐 경우
         if (!Type.isElement(elem)) return;
-        if (elem.nodeName.toLowerCase() !== 'tbody') return;
+        // 전달받은 엘리먼트가 div 엘리먼트가 아닐 경우
+        if (elem.nodeName.toLowerCase() !== 'div') return;
+
+        // tbody 엘리먼트를 가져온다.
+        var tableBody = Util.sel('tbody', elem);
+
+        if (!Type.isElement(tableBody)) return;
 
         this.opts = {
             elem: elem,
+            // 데이터
             data: data,
+            // 컬럼 데이터
             cols: cols,
+            // row 세로 사이즈
             height: height,
             pageSize: pageSize
         };
 
-        // 컴포넌트 엘리먼트
-        this.data = this.opts.data;
+        this.tableBody = tableBody;
 
         // 활성회된 현재 페이지 번호
         this.activetedPageNum = 0;
+
         // 활성화된 이전 페이지 번호
         this.tmpPageNum = 0;
 
+        // 컴포넌트 초기화
         this.init();
     }
 
@@ -16788,49 +16799,52 @@ var Infinity = function () {
      */
 
 
-    (0, _createClass3.default)(Infinity, [{
+    (0, _createClass3.default)(InfinityScroll, [{
         key: 'init',
         value: function init() {
 
-            var component = this.opts.elem;
+            var root = this.opts.elem;
+            var tableBody = this.tableBody;
             var height = this.opts.height;
             var pageSize = this.opts.pageSize;
 
-            _createScrollSpace.call(this);
+            _createTopScrollSpace.call(this);
 
             _addRows.call(this, 0, pageSize * 2);
 
-            var componentHeight = parseInt(Util.prop(component, '@height'));
-            var componentClassName = Util.prop(component, 'className');
+            var tableBodyHeight = parseInt(Util.prop(tableBody, '@height'));
+            var rootClassName = Util.prop(root, 'className');
 
             // 확정된 세로 사이즈
-            var resolveHeight = height * pageSize;
-            resolveHeight = componentHeight <= resolveHeight ? componentHeight : resolveHeight;
+            var resolvedHeight = height * pageSize;
+            resolvedHeight = tableBodyHeight <= resolvedHeight ? tableBodyHeight : resolvedHeight;
 
-            Util.prop(component, {
-                "className": componentClassName + ' ' + COMPONENT_CLASS_NAME,
-                "@height": resolveHeight + 'px'
+            // root 엘리먼트에 세로 사이즈를 할당한다.
+            Util.prop(root, {
+                "className": rootClassName + ' ' + COMPONENT_CLASS_NAME,
+                "@height": resolvedHeight + 'px'
             });
 
             _addEventListener.call(this);
         }
     }]);
-    return Infinity;
+    return InfinityScroll;
 }();
 
 /**
  *
- * 가상 스크롤 영역을 컴포넌트 엘리먼트에 추가한다.
+ * (가상)스크롤 영역을 가진 엘리먼트를 추가한다.
  *
  * @private
  */
 
 
-function _createScrollSpace() {
+function _createTopScrollSpace() {
 
-    var html = '<tr class="' + CLASS_NAME.scrollSpace + '" style="height:0px"></tr>';
+    var tableBody = this.tableBody;
+    var html = '<tr class="' + CLASS_NAME.topScrollSpace + '" style="height:0px"></tr>';
 
-    Util.prepend(this.opts.elem, Util.el('tbody', { 'innerHTML': html }).firstChild);
+    Util.prepend(tableBody, Util.el('tbody', { 'innerHTML': html }).firstChild);
 }
 
 /**
@@ -16861,9 +16875,9 @@ function _addEventListener() {
         // 스크롤을 통해, 현재 페이지 번호가 변경될경우
         if (activetedPageNum !== _this.tmpPageNum) {
 
-            var emptySpaceElem = Util.sel('.' + CLASS_NAME.scrollSpace, component);
+            var topScrollSpaceElem = Util.sel('.' + CLASS_NAME.topScrollSpace, component);
 
-            Util.prop(emptySpaceElem, '@height', activetedPageNum * pageSize * height + 'px');
+            Util.prop(topScrollSpaceElem, '@height', activetedPageNum * pageSize * height + 'px');
 
             // 활성화된 페이지 번호를 임시 변수에 저장한다.
             _this.tmpPageNum = activetedPageNum;
@@ -16890,8 +16904,8 @@ function _addRows() {
     var endIndex = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
 
 
-    var component = this.opts.elem;
-    var data = this.data;
+    var tableBody = this.tableBody;
+    var data = this.opts.data;
     var cols = this.opts.cols;
     var height = this.opts.height;
 
@@ -16916,7 +16930,7 @@ function _addRows() {
 
         html.push('</tr>');
 
-        Util.append(component, Util.el('tbody', { 'innerHTML': html.join('') }).firstChild);
+        Util.append(tableBody, Util.el('tbody', { 'innerHTML': html.join('') }).firstChild);
     }
 }
 
@@ -16928,8 +16942,8 @@ function _addRows() {
  */
 function _removeRows() {
 
-    var component = this.opts.elem;
-    var elems = Util.children(component, 'tr');
+    var tableBody = this.tableBody;
+    var elems = Util.children(tableBody, 'tr');
 
     var length = elems.length;
 
@@ -16941,7 +16955,7 @@ function _removeRows() {
     }
 }
 
-module.exports = Infinity;
+module.exports = InfinityScroll;
 
 /***/ })
 /******/ ]);

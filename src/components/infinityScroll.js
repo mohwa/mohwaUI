@@ -1,5 +1,5 @@
 /**
- * Created by mohwa on 2018. 4. 21..
+ * Created by mohwa on 2018. 5. 23..
  */
 
 
@@ -11,14 +11,14 @@ const COMPONENT_CLASS_NAME = BASE.componentClassName('infinity');
 
 // 전역 클래스 객체
 const CLASS_NAME = {
-    scrollSpace: 'scroll-space'
+    topScrollSpace: 'top-scroll-space'
 };
 
 
 /**
- * Infinity Class
+ * InfinityScroll Class
  */
-class Infinity{
+class InfinityScroll{
 
     constructor({
         elem = null,
@@ -28,25 +28,36 @@ class Infinity{
         pageSize = 5
     } = {}){
 
+        // 전달받은 엘리먼트가 엘리먼트 타입이 아닐 경우
         if (!Type.isElement(elem)) return;
-        if (elem.nodeName.toLowerCase() !== 'tbody') return;
+        // 전달받은 엘리먼트가 div 엘리먼트가 아닐 경우
+        if (elem.nodeName.toLowerCase() !== 'div') return;
+
+        // tbody 엘리먼트를 가져온다.
+        const tableBody = Util.sel('tbody', elem);
+
+        if (!Type.isElement(tableBody)) return;
 
         this.opts = {
             elem,
+            // 데이터
             data,
+            // 컬럼 데이터
             cols,
+            // row 세로 사이즈
             height,
             pageSize
         };
 
-        // 컴포넌트 엘리먼트
-        this.data = this.opts.data;
+        this.tableBody = tableBody;
 
         // 활성회된 현재 페이지 번호
         this.activetedPageNum = 0;
+
         // 활성화된 이전 페이지 번호
         this.tmpPageNum = 0;
 
+        // 컴포넌트 초기화
         this.init();
     }
 
@@ -55,25 +66,26 @@ class Infinity{
      */
     init(){
 
-        const component = this.opts.elem;
+        const root = this.opts.elem;
+        const tableBody = this.tableBody;
         const height = this.opts.height;
         const pageSize = this.opts.pageSize;
 
-        _createScrollSpace.call(this);
+        _createTopScrollSpace.call(this);
 
         _addRows.call(this, 0, (pageSize * 2));
 
-        const componentHeight = parseInt(Util.prop(component, '@height'));
-        const componentClassName = Util.prop(component, 'className');
+        const tableBodyHeight = parseInt(Util.prop(tableBody, '@height'));
+        const rootClassName = Util.prop(root, 'className');
 
         // 확정된 세로 사이즈
-        let resolveHeight = height * pageSize;
-        resolveHeight = componentHeight <= resolveHeight ? componentHeight : resolveHeight;
+        let resolvedHeight = height * pageSize;
+        resolvedHeight = tableBodyHeight <= resolvedHeight ? tableBodyHeight : resolvedHeight;
 
-
-        Util.prop(component, {
-            "className": `${componentClassName} ${COMPONENT_CLASS_NAME}`,
-            "@height": `${resolveHeight}px`
+        // root 엘리먼트에 세로 사이즈를 할당한다.
+        Util.prop(root, {
+            "className": `${rootClassName} ${COMPONENT_CLASS_NAME}`,
+            "@height": `${resolvedHeight}px`
         });
 
         _addEventListener.call(this);
@@ -82,15 +94,16 @@ class Infinity{
 
 /**
  *
- * 가상 스크롤 영역을 컴포넌트 엘리먼트에 추가한다.
+ * (가상)스크롤 영역을 가진 엘리먼트를 추가한다.
  *
  * @private
  */
-function _createScrollSpace(){
+function _createTopScrollSpace(){
 
-    const html = `<tr class="${CLASS_NAME.scrollSpace}" style="height:0px"></tr>`;
+    const tableBody = this.tableBody;
+    const html = `<tr class="${CLASS_NAME.topScrollSpace}" style="height:0px"></tr>`;
 
-    Util.prepend(this.opts.elem, Util.el('tbody', {'innerHTML': html}).firstChild);
+    Util.prepend(tableBody, Util.el('tbody', {'innerHTML': html}).firstChild);
 }
 
 /**
@@ -120,9 +133,9 @@ function _addEventListener(){
         // 스크롤을 통해, 현재 페이지 번호가 변경될경우
 		if (activetedPageNum !== this.tmpPageNum){
 
-		    const emptySpaceElem = Util.sel(`.${CLASS_NAME.scrollSpace}`, component);
+		    const topScrollSpaceElem = Util.sel(`.${CLASS_NAME.topScrollSpace}`, component);
 
-            Util.prop(emptySpaceElem, '@height', `${(activetedPageNum * pageSize) * height}px`);
+            Util.prop(topScrollSpaceElem, '@height', `${(activetedPageNum * pageSize) * height}px`);
 
             // 활성화된 페이지 번호를 임시 변수에 저장한다.
 			this.tmpPageNum = activetedPageNum;
@@ -146,8 +159,8 @@ function _addEventListener(){
  */
 function _addRows(startIndex = 0, endIndex = 0){
 
-    const component = this.opts.elem;
-    const data = this.data;
+    const tableBody = this.tableBody;
+    const data = this.opts.data;
     const cols = this.opts.cols;
     const height = this.opts.height;
 
@@ -172,7 +185,7 @@ function _addRows(startIndex = 0, endIndex = 0){
 
         html.push(`</tr>`);
 
-        Util.append(component, Util.el('tbody', {'innerHTML': html.join('')}).firstChild);
+        Util.append(tableBody, Util.el('tbody', {'innerHTML': html.join('')}).firstChild);
     }
 }
 
@@ -184,8 +197,8 @@ function _addRows(startIndex = 0, endIndex = 0){
  */
 function _removeRows(){
 
-    const component = this.opts.elem;
-    const elems = Util.children(component, 'tr');
+    const tableBody = this.tableBody;
+    const elems = Util.children(tableBody, 'tr');
 
     const length = elems.length;
 
@@ -197,4 +210,4 @@ function _removeRows(){
     }
 }
 
-module.exports = Infinity;
+module.exports = InfinityScroll;
