@@ -9,12 +9,15 @@
 	<meta name="apple-mobile-web-app-capable" content="yes">
 	<meta name="apple-touch-fullscreen" content="yes">
 	<meta name="description">
-	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
-	<!--<script src="https://unpkg.com/axios/dist/axios.min.js"></script>-->
+	<!--<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>-->
 
 	<title></title>
 
 	<style type="text/css">
+
+	html, body {
+		font-family: "Courier New", Courier, monospace;
+	}
 
 	#input_search {
 
@@ -27,29 +30,60 @@
 		outline: 0;
 	}
 
-	.table1 {
+	.header-table {
 		width: 100%;
 		border: gray 1px solid;
 	}
 
-	.table2 {
+	.header-table thead{
+		background: #F5F5F5;
+	}
+
+	.header-table thead th{
+		height: 50px;
+	}
+
+	.data-table {
 		width: 100%;
 		border: gray 1px solid;
 	}
 
-	th, td{
+	.header-table th, .data-table td{
 		border: gray 1px solid;
+		text-align: center;
+	}
+
+	.data-table tr:nth-child(odd){
+		background: #F5F5F5;
+	}
+
+	.header-table th:nth-child(1), .data-table td:nth-child(1){
+		width: 150px;
+	}
+
+	.header-table th:nth-child(2), .data-table td:nth-child(2){
+		width: 150px;
+	}
+
+	.header-table th:nth-child(3), .data-table td:nth-child(3){
+		width: 160px;
+	}
+
+	.header-table th:nth-child(4), .data-table td:nth-child(4){
+		width: 150px;
+	}
+
+	.header-table th:nth-child(5), .data-table td:nth-child(5){
+		width: 170px;
+	}
+
+	.header-table th:nth-child(6), .data-table td:nth-child(6){
+		width: 150px;
 	}
 
 	.infinity-area{
-
 		width: 100%;
 		border-top: none;
-		display: inline-block;
-	}
-
-	.no-data-text{
-		text-align: center;
 	}
 
 	</style>
@@ -59,23 +93,9 @@
 <body>
 
 <input type="text" id="input_search" />
-<a href="#">TEst</a>
-<!--<div style="margin-left: 50px" class="infinity-container">-->
-	<!--<table class="table1">-->
-		<!--<thead>-->
-			<!--<tr>-->
-				<!--<th>id</th>-->
-				<!--<th>name</th>-->
-			<!--</tr>-->
-		<!--</thead>-->
-		<!--<tbody class="infinity-area">-->
-		<!--</tbody>-->
-		<!--&lt;!&ndash;<tfoot></tfoot>&ndash;&gt;-->
-	<!--</table>-->
-<!--</div>-->
 
-<div style="margin-top:20px;margin-left: 50px">
-	<table class="table1">
+<div style="margin-top:20px;margin-left: 10px">
+	<table class="header-table">
 		<thead>
 			<tr>
 				<th>Customer Name</th>
@@ -87,11 +107,11 @@
 			</tr>
 		</thead>
 	</table>
-	<span class="infinity-area">
-		<table class="table2">
+	<div class="infinity-area">
+		<table class="data-table">
 			<tbody></tbody>
 		</table>
-	</span>
+	</div>
 </div>
 <script type="text/javascript">
 
@@ -117,15 +137,15 @@
 	for (var i = 0; i < 10000; i++){
 
 	    list.push({
-	        "Name": "AAAAA",
-	        "logCode": "CODE001",
-	        "logCodeName": "BLUE",
-	        "date": "20160101100546",
-	        "Salary": "323522.3800",
-	        "stateCode": "200",
-	        "stateCodeName": "OK",
-	        "testCode": "1",
-	        "testCodeName": "APPLE"
+	        "Name": "Name" + i,
+	        "logCode": "logCode" + i,
+	        "logCodeName": "logCodeName" + i,
+	        "date": new Date().getTime(),
+	        "Salary": "Salary" + i,
+	        "stateCode": "stateCode" + i,
+	        "stateCodeName": "stateCodeName",
+	        "testCode": "testCode" + i,
+	        "testCodeName": "testCodeName" + i
 	    });
 	}
 
@@ -144,6 +164,7 @@
 			{name: 'stateCodeName'},
 			{name: 'testCodeName'}
 		],
+		rowHeight: 40,
 		pageSize: 5,
 		onSelectCell: function(elem){
 			console.log('cell', this, elem);
