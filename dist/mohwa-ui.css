@@ -63,6 +63,5 @@ a, a:link, a:visited, a:active {
         outline: none; }
 
 .-mohwa-ui-infinity {
-  width: 100%;
   overflow-x: hidden;
   overflow-y: auto; }

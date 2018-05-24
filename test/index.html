@@ -9,7 +9,7 @@
 	<meta name="apple-mobile-web-app-capable" content="yes">
 	<meta name="apple-touch-fullscreen" content="yes">
 	<meta name="description">
-	<!--<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>-->
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
 	<!--<script src="https://unpkg.com/axios/dist/axios.min.js"></script>-->
 
 	<title></title>
@@ -26,6 +26,29 @@
 
 		outline: 0;
 	}
+
+	.table1 {
+		width: 100%;
+		border: gray 1px solid;
+	}
+
+	.table2 {
+		width: 100%;
+		border: gray 1px solid;
+	}
+
+	th, td{
+		border: gray 1px solid;
+	}
+
+	.infinity-area{
+		border-top: none;
+	}
+
+	.no-data-text{
+		text-align: center;
+	}
+
 	</style>
 
 
@@ -34,22 +57,154 @@
 
 <input type="text" id="input_search" />
 <a href="#">TEst</a>
+<!--<div style="margin-left: 50px" class="infinity-container">-->
+	<!--<table class="table1">-->
+		<!--<thead>-->
+			<!--<tr>-->
+				<!--<th>id</th>-->
+				<!--<th>name</th>-->
+			<!--</tr>-->
+		<!--</thead>-->
+		<!--<tbody class="infinity-area">-->
+		<!--</tbody>-->
+		<!--&lt;!&ndash;<tfoot></tfoot>&ndash;&gt;-->
+	<!--</table>-->
+<!--</div>-->
+
+<div style="margin-top:20px;margin-left: 50px">
+	<table class="table1">
+		<thead>
+			<tr>
+				<th>Customer Name</th>
+				<th>Salary</th>
+				<th>Date</th>
+				<th>log Name</th>
+				<th>State Name</th>
+				<th>Test Code</th>
+			</tr>
+		</thead>
+	</table>
+	<div class="infinity-area">
+		<table class="table2">
+			<tbody></tbody>
+		</table>
+	</div>
+</div>
 <script type="text/javascript">
 
-	new MohwaUI.Suggest({
-		elem: document.querySelector('#input_search'),
-		data: {
-			url: '/suggest/search'
-		},
-		onSelected: function(v){
-			console.log(v);
-//			top.location.href = 'https://www.google.com/search?q=' + window.encodeURIComponent(v);
-		},
-		onEnter: function(v){
+//	new MohwaUI.Suggest({
+//		elem: document.querySelector('#input_search'),
+//		data: {
+//			url: '/suggest/search'
+//		},
+//		onSelected: function(v){
+//			console.log(v);
+////			top.location.href = 'https://www.google.com/search?q=' + window.encodeURIComponent(v);
+//		},
+//		onEnter: function(v){
+//
+//			console.log(v);
+////			top.location.href = 'https://search.naver.com/search.naver?query=' + window.encodeURIComponent(v);
+//		}
+//	});
 
-			console.log(v);
-//			top.location.href = 'https://search.naver.com/search.naver?query=' + window.encodeURIComponent(v);
-		}
+	var list = [];
+
+	for (var i = 0; i < 10000; i++){
+
+	    list.push({
+	        "Name": "AAAAA",
+	        "logCode": "CODE001",
+	        "logCodeName": "BLUE",
+	        "date": "20160101100546",
+	        "Salary": "323522.3800",
+	        "stateCode": "200",
+	        "stateCodeName": "OK",
+	        "testCode": "1",
+	        "testCodeName": "APPLE"
+	    });
+	}
+
+
+//
+//	const height = 30;
+//	const pageSize = 5;
+//    const scrollElem = document.querySelector('.scroll');
+//	const html = [];
+//
+//	// 초기화
+//	for (let i = 0 ; i < (pageSize * 2); i++){
+//
+//		const item = list[i];
+//
+//		$(scrollElem).append($('<tr><td class="id">' + item.id + '</td><td class="name">' + item.name + '</td></tr>'));
+//	}
+//
+//	let tmpPageNum;
+//
+//	scrollElem.onscroll = function(e) {
+//
+//		const elem = e.target;
+//
+//		const pageNum = parseInt(elem.scrollTop / (height * pageSize));
+//		const viewPageNum = pageNum + 1;
+//
+//		let startIndex = pageNum * pageSize;
+//		let endIndex = startIndex + (pageSize * 2);
+//		endIndex = list.length > endIndex ? endIndex : list.length;
+//
+//
+//		if (pageNum !== tmpPageNum){
+//
+//			tmpPageNum = pageNum;
+//
+//		    console.log(pageNum, viewPageNum);
+//		    console.log(startIndex);
+//		    console.log(endIndex);
+//
+//            $('.top').css('height', ((pageNum * pageSize) * height));
+//
+//			// 이전 노드들을 삭제한다.
+//			const removeElemes = $(scrollElem).find('tr');
+//
+//	        for (let i = 1 ; i < removeElemes.length; i++){
+//				removeElemes[i].remove();
+//	        }
+//
+//	        for (let i = startIndex ; i < endIndex; i++){
+//
+//	            const item = list[i];
+//
+//				$(scrollElem).append($('<tr><td class="id">' + item.id + '</td><td class="name">' + item.name + '</td></tr>'));
+//	        }
+//		}
+//	};
+
+//	new MohwaUI.Infinity({
+//		elem: document.querySelector('.infinity-area'),
+//		data: list,
+//		cols: [
+//			{name: 'name'},
+//			{name: 'id'}
+//		],
+//		pageSize: 8
+//	});
+
+	new MohwaUI.InfinityScroll({
+		elem: document.querySelector('.infinity-area'),
+		data: list,
+		cols: [
+			{name: 'logCode', hidden: true},
+			{name: 'stateCode', hidden: true},
+			{name: 'testCode', hidden: true},
+			{name: 'Name'},
+			{name: 'Salary'},
+			{name: 'date'},
+			{name: 'logCodeName'},
+			{name: 'stateCodeName'},
+			{name: 'testCodeName'}
+		],
+		pageSize: 5
 	});
 
 </script>

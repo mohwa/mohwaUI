@@ -16754,12 +16754,14 @@ var InfinityScroll = function () {
             data = _ref$data === undefined ? [] : _ref$data,
             _ref$cols = _ref.cols,
             cols = _ref$cols === undefined ? [] : _ref$cols,
-            _ref$height = _ref.height,
-            height = _ref$height === undefined ? 30 : _ref$height,
-            _ref$pageSize = _ref.pageSize,
-            pageSize = _ref$pageSize === undefined ? 5 : _ref$pageSize,
+            _ref$rowHeight = _ref.rowHeight,
+            rowHeight = _ref$rowHeight === undefined ? 30 : _ref$rowHeight,
+            _ref$rowSize = _ref.rowSize,
+            rowSize = _ref$rowSize === undefined ? 5 : _ref$rowSize,
             _ref$noDataText = _ref.noDataText,
-            noDataText = _ref$noDataText === undefined ? '' : _ref$noDataText;
+            noDataText = _ref$noDataText === undefined ? '' : _ref$noDataText,
+            _ref$multipleRowCount = _ref.multipleRowCount,
+            multipleRowCount = _ref$multipleRowCount === undefined ? 4 : _ref$multipleRowCount;
 
         (0, _classCallCheck3.default)(this, InfinityScroll);
 
@@ -16769,30 +16771,36 @@ var InfinityScroll = function () {
         // 전달받은 엘리먼트가 div 엘리먼트가 아닐 경우
         if (elem.nodeName.toLowerCase() !== 'div') return;
 
-        // tbody 엘리먼트를 가져온다.
+        // elem 자식인 tbody 엘리먼트를 가져온다.
         var tableBody = Util.sel('tbody', elem);
 
+        // 전달받은 엘리먼트의 자식 엘리먼트에 tbody 엘리먼트가 없을 경우
         if (!Type.isElement(tableBody)) return;
 
         this.opts = {
+            // root 엘리먼트
             elem: elem,
             // 데이터
             data: data,
             // 컬럼 데이터
             cols: cols,
             // row 세로 사이즈
-            height: height,
-            pageSize: pageSize,
-            // 데이터가 비어있을때 보여줄 텍스트
-            noDataText: noDataText
+            rowHeight: rowHeight,
+            // 페이지당 보여질 row 갯수
+            rowSize: rowSize,
+            // 전달받은 데이터가 비어있을때 보여줄 텍스트
+            noDataText: noDataText,
+            // 전달받은 rowSize 에, 추가로 더해질 row 들의 (공)배수
+            multipleRowCount: multipleRowCount
         };
 
+        // tbody 엘리먼트
         this.tableBody = tableBody;
 
         // 활성회된 현재 페이지 번호
         this.activetedPageNum = 0;
 
-        // 활성화된 이전 페이지 번호
+        // 활성화된 이전(임시) 페이지 번호
         this.tmpPageNum = 0;
 
         // 컴포넌트 초기화
@@ -16812,30 +16820,35 @@ var InfinityScroll = function () {
             var tableBody = this.tableBody;
 
             var data = this.opts.data;
-            var height = this.opts.height;
-            var pageSize = this.opts.pageSize;
+            var rowHeight = this.opts.rowHeight;
+            var rowSize = this.opts.rowSize;
 
-            // 빈 데이터 처리
+            var multipleRowCount = this.opts.multipleRowCount;
+
+            // 데이터가 비어있을 경우
             if (!data.length) {
                 _setNoDataText.call(this);
                 return;
             }
 
-            _createTopScrollSpace.call(this);
-            _addRows.call(this, 0, pageSize * 2);
-            _createBottomScrollSpace.call(this);
+            _createTopScrollSpaceElem.call(this);
 
+            _addRowElems.call(this, 0, rowSize * multipleRowCount);
+
+            _createBottomScrollSpaceElem.call(this);
+
+            // 페이지당 총 세로 사이즈
+            var pageHeight = rowHeight * rowSize;
             var tableBodyHeight = parseInt(Util.prop(tableBody, '@height'));
-            var rootClassName = Util.prop(root, 'className');
+            var prevClassName = Util.prop(root, 'className');
 
-            // 확정된 세로 사이즈
-            var resolvedHeight = height * pageSize;
-            resolvedHeight = tableBodyHeight <= resolvedHeight ? tableBodyHeight : resolvedHeight;
+            // 실제 보여질 overflow 사이즈
+            var overflowHeight = tableBodyHeight <= pageHeight ? tableBodyHeight : pageHeight;
 
             // root 엘리먼트에 세로 사이즈를 할당한다.
             Util.prop(root, {
-                "className": rootClassName + ' ' + COMPONENT_CLASS_NAME,
-                "@height": resolvedHeight + 'px'
+                "className": prevClassName + ' ' + COMPONENT_CLASS_NAME,
+                "@height": overflowHeight + 'px'
             });
 
             Util.attr(tableBody, 'tabindex', 0);
@@ -16848,13 +16861,13 @@ var InfinityScroll = function () {
 
 /**
  *
- * (가상)스크롤 영역을 가진 엘리먼트를 추가한다.
+ * top 스크롤 영역을 가진 엘리먼트를 추가한다.
  *
  * @private
  */
 
 
-function _createTopScrollSpace() {
+function _createTopScrollSpaceElem() {
 
     var tableBody = this.tableBody;
     var html = '<tr class="' + CLASS_NAME.topScrollSpace + '" style="height:0px"></tr>';
@@ -16864,42 +16877,43 @@ function _createTopScrollSpace() {
 
 /**
  *
- * (가상)스크롤 영역을 가진 엘리먼트를 추가한다.
+ * bottom 스크롤 영역을 가진 엘리먼트를 추가 및 설정한다.
  *
  * @private
  */
 
-function _createBottomScrollSpace() {
-    var height = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
+function _createBottomScrollSpaceElem() {
+    var topScrollSpaceHeight = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
 
+
+    var rowHeight = this.opts.rowHeight;
+    var rowSize = this.opts.rowSize;
+    var data = this.opts.data;
 
     var tableBody = this.tableBody;
-    //const _height = this.opts.height;
 
-    var html = '<tr class="' + CLASS_NAME.bottomScrollSpace + '"></tr>';
+    var pageHeight = rowHeight * rowSize;
 
-    var tr = Util.el('tbody', { "innerHTML": html }).firstChild;
-
-    Util.append(tableBody, tr);
-
-    var offset = Util.offset(tr);
-
-    //console.log(offset.y, height, (offset.y - height));
-
-    // 스크롤바를 항상 상위에 위치시키기 위해서는, 전체 데이터 세로 사이즈에 현재 topScrollSpace 세로 사이즈를 빼주면 된다.
-    // 그럼 스크롤이 항상 원하는 위치에 놓을 수 있다.(이로써 데이터의 마지막 부분까지 스크롤할 수 있게 된다)
     //**************************************************
     //**************************************************
+    // tableBody 스크롤을 전달받은 topScrollSpace 위치에 놓기위해, bottomScrollSpace 공간을 만들어준다.
+    // bottomScrollSpace 사이즈 공식은 아래와 같다.
+    // (data.length * rowHeight(전체 데이터를 노출 시키기위해 필요한 사이즈)) - (topScrollSpaceHeight(사용자가 스크롤한 사이즈 + resolvedHeight(이미 그려진 rows 사이즈))
     //**************************************************
-    // 현재 누적된 10개 노드에 대한, 세로값도 빼줘야할듯하다!!!!
     //**************************************************
-    //**************************************************
-    //**************************************************
-    if (this.opts.pageSize * this.opts.height < this.opts.data.length * this.opts.height - height) {
-        Util.prop(tr, '@height', this.opts.data.length * this.opts.height - height + 'px');
-    } else {
-        Util.prop(tr, '@height', '0px');
+    var bottomScrollSpaceHeight = data.length * rowHeight - (topScrollSpaceHeight + pageHeight);
+
+    var tr = Util.sel('.' + CLASS_NAME.bottomScrollSpace, tableBody);
+
+    // bottomScrollSpace 엘리먼트가 없을 경우
+    if (!Type.isElement(tr)) {
+
+        // bottomScrollSpace 엘리먼트를 추가한다.
+        tr = Util.el('tbody', { "innerHTML": '<tr class="' + CLASS_NAME.bottomScrollSpace + '"></tr>' }).firstChild;
+        Util.append(tableBody, tr);
     }
+
+    if (pageHeight < bottomScrollSpaceHeight) Util.prop(tr, '@height', bottomScrollSpaceHeight + 'px');else Util.remove(tr);
 }
 
 /**
@@ -16912,38 +16926,50 @@ function _addEventListener() {
     var _this = this;
 
     var component = this.opts.elem;
-    var height = this.opts.height;
-    var pageSize = this.opts.pageSize;
+    var rowHeight = this.opts.rowHeight;
+    var rowSize = this.opts.rowSize;
+    var multipleRowCount = this.opts.multipleRowCount;
+
+    // multipleRowCount 반 사이즈
+    // 전달받은 rowSize 에 multipleRowCount 를 곱해준 row 갯수 반만큼을 갱신할 row 갯수로 설정한다.
+
+    // rowSize(5) * multipleRowCount(4) = 20 / (multipleRowCount / 2)(=> 2) = 결과: 10
+    var halfMultipleRowCount = multipleRowCount / 2;
 
     Util.prop(component, 'addEventListener', ['scroll', function (e) {
 
         var elem = e.target;
 
-        // 현재 활성화된 페이지 번호
-        var activetedPageNum = _this.activetedPageNum = parseInt(elem.scrollTop / (height * pageSize));
+        // 페이지당 세로 사이즈
+        var pageHeight = rowHeight * rowSize;
 
-        // 보여질 데이터의 시작 index(0 페이지일때는 0, 1 페이지일때는 5 부터 시작한다)
-        var startIndex = activetedPageNum * pageSize;
-        // 보여질 데이터의 마지막 index(0 페이지일때는 0 ~ 9, 1 페이지일때는 5 ~ 14 까지)
-        var endIndex = startIndex + pageSize * 2;
+        // 현재 활성화된 페이지 번호
+        var activetedPageNum = _this.activetedPageNum = parseInt(elem.scrollTop / (pageHeight * halfMultipleRowCount));
+
+        // 데이터의 시작 index(0 페이지일때는 0, 1 페이지일때는 10 부터 시작한다)
+        var startIndex = activetedPageNum * rowSize * halfMultipleRowCount;
+        // 데이터의 마지막 index(0 페이지일때는 0 ~ 20, 1 페이지일때는 10 ~ 30 까지)
+        var endIndex = startIndex + rowSize * multipleRowCount;
 
         // 스크롤을 통해, 현재 페이지 번호가 변경될경우
         if (activetedPageNum !== _this.tmpPageNum) {
 
             var topScrollSpaceElem = Util.sel('.' + CLASS_NAME.topScrollSpace, component);
+            var topScrollSpaceSize = activetedPageNum * rowSize * rowHeight * halfMultipleRowCount;
 
-            Util.prop(topScrollSpaceElem, '@height', activetedPageNum * pageSize * height + 'px');
+            Util.prop(topScrollSpaceElem, '@height', topScrollSpaceSize + 'px');
 
             // 활성화된 페이지 번호를 임시 변수에 저장한다.
             _this.tmpPageNum = activetedPageNum;
 
-            // 이전 노드들을 전부 삭제한다.
+            // 추가된 이전 노드들을 모두 삭제한다.
             _removeRows.call(_this);
 
             // 새로운 노드들을 추가한다.
-            _addRows.call(_this, startIndex, endIndex);
+            _addRowElems.call(_this, startIndex, endIndex);
 
-            _createBottomScrollSpace.call(_this, activetedPageNum * pageSize * height);
+            // bottomScrollSpaceElem 설정한다.
+            _createBottomScrollSpaceElem.call(_this, topScrollSpaceSize);
         }
     }]);
 }
@@ -16956,7 +16982,7 @@ function _addEventListener() {
  * @param endIndex
  * @private
  */
-function _addRows() {
+function _addRowElems() {
     var startIndex = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
     var endIndex = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
 
@@ -16964,7 +16990,7 @@ function _addRows() {
     var tableBody = this.tableBody;
     var data = this.opts.data;
     var cols = this.opts.cols;
-    var height = this.opts.height;
+    var rowHeight = this.opts.rowHeight;
 
     // data 길이에 맞게, 전체 길이를 변경시킨다.
     endIndex = data.length < endIndex ? data.length : endIndex;
@@ -16973,7 +16999,7 @@ function _addRows() {
 
         var html = [];
 
-        html.push('<tr style="height:' + height + 'px">');
+        html.push('<tr style="height:' + rowHeight + 'px">');
 
         var item = data[i];
 
@@ -16992,6 +17018,8 @@ function _addRows() {
 }
 
 /**
+ *
+ * 빈 데이터 텍스트를 설정한다.
  *
  * @private
  */
