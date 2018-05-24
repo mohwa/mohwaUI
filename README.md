@@ -65,3 +65,21 @@ ___
 - 일정한 엘리먼트 갯수로, 무한 스크롤 테이블을 만들 수 있는 컴포넌트
 
 - [실행 소스 및 데모 보기](https://jsfiddle.net/mohwa/Lsv7fx3f/)
+
+프로퍼티
+
+|Name|Types|Description|
+|:--:|:-----:|:----------|
+|`elem`|`{Element}`|InfinityScroll를 적용할 엘리먼트를 정의한다.|
+|`data`|`{Object Array}`|테이블 데이터|
+|`cols`|`{Object Array}`|컬럼 순서 및 화면 렌더링 유/무를 정의한다.|
+|`rowHeight`|`{Int}`|row 당 세로 사이즈|
+|`rowSize`|`{Int}`|페이지당 보여질 row 갯수|
+|`noDataText`|`{String}`|데이터가 비어있을때 보여줄 텍스트|
+|`multipleRowCount`|`{Int}`|기존 rowSize 에, 추가로 더해질 row 들의 (공)배수(높게 설정할 수록, 리스트 갱신 범위를 늘릴 수 있다)|
+
+이벤트
+
+|Name|Types|Description|
+|:--:|:-----:|:----------|
+|`onSelectCell`|`{Function}`|셀 선택 시, 호출될 callback 함수|
