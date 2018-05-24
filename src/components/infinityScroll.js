@@ -271,16 +271,13 @@ function _addRowElems(startIndex = 0, endIndex = 0){
 
         const item = data[i];
 
-        const colLength = cols.length;
-        for (let ii = 0 ; ii < colLength; ii++){
-
-            const col = cols[ii];
+        cols.forEach(v => {
 
             // 컬럼을 노출해야할 경우
-            if (!col.hidden){
-                html.push(`<td>${item[col.name]}</td>`);
+            if (!v.hidden){
+                html.push(`<td>${item[v.name]}</td>`);
             }
-        }
+        });
 
         html.push(`</tr>`);
 
