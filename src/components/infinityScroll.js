@@ -12,7 +12,8 @@ const COMPONENT_CLASS_NAME = BASE.componentClassName('infinity');
 // 전역 클래스 객체
 const CLASS_NAME = {
     topScrollSpace: 'top-scroll-space',
-    bottomScrollSpace: 'bottom-scroll-space'
+    bottomScrollSpace: 'bottom-scroll-space',
+    noDataText: 'no-data-text'
 };
 
 
@@ -282,7 +283,7 @@ function _setNoDataText(){
 
     if (Type.isEmpty(noDataText)) return;
 
-    const html = `<tr class="no-data-text"><td>${noDataText}</td></tr>`;
+    const html = `<tr class="${CLASS_NAME.noDataText}"><td>${noDataText}</td></tr>`;
 
     Util.append(tableBody, Util.el('tbody', {"innerHTML": html}).firstChild);
 }
