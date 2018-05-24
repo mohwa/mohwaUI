@@ -57,3 +57,11 @@ const MohwaUI = require('mohwa-ui');
 |:--:|:-----:|:----------|
 |`onEnter`|`{Function}`|`Enter`키 클릭 시, 호출될 콜백함수를 정의한다.|
 |`onSelected`|`{Function}`|검색어 선택 시, 호출될 콜백함수를 정의한다.|
+
+___
+
+### InfinityScroll 컴포넌트
+
+- 일정한 엘리먼트 갯수로, 무한 스크롤 테이블을 만들 수 있는 컴포넌트
+
+- [실행 소스 및 데모 보기](https://jsfiddle.net/mohwa/Lsv7fx3f/)
