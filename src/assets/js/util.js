@@ -183,12 +183,27 @@ const Util = {
 
         return this;
     },
-    remove(target = null){
+    /**
+     *
+     */
+    remove(target = null, selector = ''){
 
-        const parents = this.parent(target);
+        if (selector){
 
-        if (parents.length){
-            parents[0].removeChild(target);
+            let elems = this.sels(selector, target);
+            elems = this.nodeListToArray(elems);
+
+            elems.forEach(v => {
+
+                const parents = this.parent(v);
+
+                if (parents.length) parents[0].removeChild(v);
+            });
+        }
+        else{
+
+            const parents = this.parent(target);
+            if (parents.length) parents[0].removeChild(target);
         }
 
         return this;

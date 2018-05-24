@@ -1893,14 +1893,32 @@ var Util = {
 
         return this;
     },
+
+    /**
+     *
+     */
     remove: function remove() {
+        var _this = this;
+
         var target = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : null;
+        var selector = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : '';
 
 
-        var parents = this.parent(target);
+        if (selector) {
 
-        if (parents.length) {
-            parents[0].removeChild(target);
+            var elems = this.sels(selector, target);
+            elems = this.nodeListToArray(elems);
+
+            elems.forEach(function (v) {
+
+                var parents = _this.parent(v);
+
+                if (parents.length) parents[0].removeChild(v);
+            });
+        } else {
+
+            var parents = this.parent(target);
+            if (parents.length) parents[0].removeChild(target);
         }
 
         return this;
@@ -16738,7 +16756,8 @@ var COMPONENT_CLASS_NAME = BASE.componentClassName('infinity');
 // 전역 클래스 객체
 var CLASS_NAME = {
     topScrollSpace: 'top-scroll-space',
-    bottomScrollSpace: 'bottom-scroll-space'
+    bottomScrollSpace: 'bottom-scroll-space',
+    noDataText: 'no-data-text'
 };
 
 /**
@@ -16761,15 +16780,15 @@ var InfinityScroll = function () {
             _ref$noDataText = _ref.noDataText,
             noDataText = _ref$noDataText === undefined ? '' : _ref$noDataText,
             _ref$multipleRowCount = _ref.multipleRowCount,
-            multipleRowCount = _ref$multipleRowCount === undefined ? 4 : _ref$multipleRowCount;
+            multipleRowCount = _ref$multipleRowCount === undefined ? 4 : _ref$multipleRowCount,
+            _ref$onSelectCell = _ref.onSelectCell,
+            onSelectCell = _ref$onSelectCell === undefined ? function () {} : _ref$onSelectCell;
 
         (0, _classCallCheck3.default)(this, InfinityScroll);
 
 
         // 전달받은 엘리먼트가 엘리먼트 타입이 아닐 경우
         if (!Type.isElement(elem)) return;
-        // 전달받은 엘리먼트가 div 엘리먼트가 아닐 경우
-        if (elem.nodeName.toLowerCase() !== 'div') return;
 
         // elem 자식인 tbody 엘리먼트를 가져온다.
         var tableBody = Util.sel('tbody', elem);
@@ -16791,7 +16810,9 @@ var InfinityScroll = function () {
             // 전달받은 데이터가 비어있을때 보여줄 텍스트
             noDataText: noDataText,
             // 전달받은 rowSize 에, 추가로 더해질 row 들의 (공)배수
-            multipleRowCount: multipleRowCount
+            multipleRowCount: multipleRowCount,
+            // cell 선택 시, 호출될 callback 함수
+            onSelectCell: onSelectCell
         };
 
         // tbody 엘리먼트
@@ -16898,7 +16919,7 @@ function _createBottomScrollSpaceElem() {
     //**************************************************
     // tableBody 스크롤을 전달받은 topScrollSpace 위치에 놓기위해, bottomScrollSpace 공간을 만들어준다.
     // bottomScrollSpace 사이즈 공식은 아래와 같다.
-    // (data.length * rowHeight(전체 데이터를 노출 시키기위해 필요한 사이즈)) - (topScrollSpaceHeight(사용자가 스크롤한 사이즈 + resolvedHeight(이미 그려진 rows 사이즈))
+    // (data.length * rowHeight(전체 데이터를 노출 시키기위해 필요한 사이즈)) - (topScrollSpaceHeight(사용자가 스크롤한 사이즈) + resolvedHeight(이미 화면에 그려진 rows 사이즈))
     //**************************************************
     //**************************************************
     var bottomScrollSpaceHeight = data.length * rowHeight - (topScrollSpaceHeight + pageHeight);
@@ -16926,6 +16947,8 @@ function _addEventListener() {
     var _this = this;
 
     var component = this.opts.elem;
+    var tableBody = this.tableBody;
+
     var rowHeight = this.opts.rowHeight;
     var rowSize = this.opts.rowSize;
     var multipleRowCount = this.opts.multipleRowCount;
@@ -16972,6 +16995,17 @@ function _addEventListener() {
             _createBottomScrollSpaceElem.call(_this, topScrollSpaceSize);
         }
     }]);
+
+    Util.prop(tableBody, 'addEventListener', ['click', function (e) {
+
+        var elem = e.target;
+        var nodeName = elem.nodeName.toLowerCase();
+        var onSelectCell = _this.opts.onSelectCell;
+
+        if (nodeName === 'td') {
+            onSelectCell.call(_this, elem);
+        }
+    }]);
 }
 
 /**
@@ -16992,7 +17026,7 @@ function _addRowElems() {
     var cols = this.opts.cols;
     var rowHeight = this.opts.rowHeight;
 
-    // data 길이에 맞게, 전체 길이를 변경시킨다.
+    // data 길이에 맞게, endIndex 값을 변경시킨다.
     endIndex = data.length < endIndex ? data.length : endIndex;
 
     for (var i = startIndex; i < endIndex; i++) {
@@ -17008,7 +17042,10 @@ function _addRowElems() {
 
             var col = cols[ii];
 
-            if (!col.hidden) html.push('<td>' + item[col.name] + '</td>');
+            // 컬럼을 노출해야할 경우
+            if (!col.hidden) {
+                html.push('<td>' + item[col.name] + '</td>');
+            }
         }
 
         html.push('</tr>');
@@ -17030,7 +17067,7 @@ function _setNoDataText() {
 
     if (Type.isEmpty(noDataText)) return;
 
-    var html = '<tr class="no-data-text"><td>' + noDataText + '</td></tr>';
+    var html = '<tr class="' + CLASS_NAME.noDataText + '"><td>' + noDataText + '</td></tr>';
 
     Util.append(tableBody, Util.el('tbody', { "innerHTML": html }).firstChild);
 }
