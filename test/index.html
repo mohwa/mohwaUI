@@ -42,7 +42,10 @@
 	}
 
 	.infinity-area{
+
+		width: 100%;
 		border-top: none;
+		display: inline-block;
 	}
 
 	.no-data-text{
@@ -84,31 +87,32 @@
 			</tr>
 		</thead>
 	</table>
-	<div class="infinity-area">
+	<span class="infinity-area">
 		<table class="table2">
 			<tbody></tbody>
 		</table>
-	</div>
+	</span>
 </div>
 <script type="text/javascript">
 
-//	new MohwaUI.Suggest({
-//		elem: document.querySelector('#input_search'),
-//		data: {
-//			url: '/suggest/search'
-//		},
-//		onSelected: function(v){
-//			console.log(v);
-////			top.location.href = 'https://www.google.com/search?q=' + window.encodeURIComponent(v);
-//		},
-//		onEnter: function(v){
-//
-//			console.log(v);
-////			top.location.href = 'https://search.naver.com/search.naver?query=' + window.encodeURIComponent(v);
-//		}
-//	});
+	new MohwaUI.Suggest({
+		elem: document.querySelector('#input_search'),
+		data: {
+			url: '/suggest/search'
+		},
+		onSelected: function(v){
+			console.log(v);
+//			top.location.href = 'https://www.google.com/search?q=' + window.encodeURIComponent(v);
+		},
+		onEnter: function(v){
 
-	var list = [];
+			console.log(v);
+//			top.location.href = 'https://search.naver.com/search.naver?query=' + window.encodeURIComponent(v);
+		}
+	});
+
+
+	const list = [];
 
 	for (var i = 0; i < 10000; i++){
 
@@ -126,70 +130,6 @@
 	}
 
 
-//
-//	const height = 30;
-//	const pageSize = 5;
-//    const scrollElem = document.querySelector('.scroll');
-//	const html = [];
-//
-//	// 초기화
-//	for (let i = 0 ; i < (pageSize * 2); i++){
-//
-//		const item = list[i];
-//
-//		$(scrollElem).append($('<tr><td class="id">' + item.id + '</td><td class="name">' + item.name + '</td></tr>'));
-//	}
-//
-//	let tmpPageNum;
-//
-//	scrollElem.onscroll = function(e) {
-//
-//		const elem = e.target;
-//
-//		const pageNum = parseInt(elem.scrollTop / (height * pageSize));
-//		const viewPageNum = pageNum + 1;
-//
-//		let startIndex = pageNum * pageSize;
-//		let endIndex = startIndex + (pageSize * 2);
-//		endIndex = list.length > endIndex ? endIndex : list.length;
-//
-//
-//		if (pageNum !== tmpPageNum){
-//
-//			tmpPageNum = pageNum;
-//
-//		    console.log(pageNum, viewPageNum);
-//		    console.log(startIndex);
-//		    console.log(endIndex);
-//
-//            $('.top').css('height', ((pageNum * pageSize) * height));
-//
-//			// 이전 노드들을 삭제한다.
-//			const removeElemes = $(scrollElem).find('tr');
-//
-//	        for (let i = 1 ; i < removeElemes.length; i++){
-//				removeElemes[i].remove();
-//	        }
-//
-//	        for (let i = startIndex ; i < endIndex; i++){
-//
-//	            const item = list[i];
-//
-//				$(scrollElem).append($('<tr><td class="id">' + item.id + '</td><td class="name">' + item.name + '</td></tr>'));
-//	        }
-//		}
-//	};
-
-//	new MohwaUI.Infinity({
-//		elem: document.querySelector('.infinity-area'),
-//		data: list,
-//		cols: [
-//			{name: 'name'},
-//			{name: 'id'}
-//		],
-//		pageSize: 8
-//	});
-
 	new MohwaUI.InfinityScroll({
 		elem: document.querySelector('.infinity-area'),
 		data: list,
@@ -204,7 +144,10 @@
 			{name: 'stateCodeName'},
 			{name: 'testCodeName'}
 		],
-		pageSize: 5
+		pageSize: 5,
+		onSelectCell: function(elem){
+			console.log('cell', this, elem);
+		}
 	});
 
 </script>

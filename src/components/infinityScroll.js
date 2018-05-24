@@ -29,13 +29,12 @@ class InfinityScroll{
         rowHeight = 30,
         rowSize = 5,
         noDataText = '',
-        multipleRowCount = 4
+        multipleRowCount = 4,
+        onSelectCell = function(){},
     } = {}){
 
         // 전달받은 엘리먼트가 엘리먼트 타입이 아닐 경우
         if (!Type.isElement(elem)) return;
-        // 전달받은 엘리먼트가 div 엘리먼트가 아닐 경우
-        if (elem.nodeName.toLowerCase() !== 'div') return;
 
         // elem 자식인 tbody 엘리먼트를 가져온다.
         const tableBody = Util.sel('tbody', elem);
@@ -57,7 +56,9 @@ class InfinityScroll{
             // 전달받은 데이터가 비어있을때 보여줄 텍스트
             noDataText,
             // 전달받은 rowSize 에, 추가로 더해질 row 들의 (공)배수
-            multipleRowCount
+            multipleRowCount,
+            // cell 선택 시, 호출될 callback 함수
+            onSelectCell
         };
 
         // tbody 엘리먼트
@@ -154,7 +155,7 @@ function _createBottomScrollSpaceElem(topScrollSpaceHeight = 0){
     //**************************************************
     // tableBody 스크롤을 전달받은 topScrollSpace 위치에 놓기위해, bottomScrollSpace 공간을 만들어준다.
     // bottomScrollSpace 사이즈 공식은 아래와 같다.
-    // (data.length * rowHeight(전체 데이터를 노출 시키기위해 필요한 사이즈)) - (topScrollSpaceHeight(사용자가 스크롤한 사이즈 + resolvedHeight(이미 그려진 rows 사이즈))
+    // (data.length * rowHeight(전체 데이터를 노출 시키기위해 필요한 사이즈)) - (topScrollSpaceHeight(사용자가 스크롤한 사이즈) + resolvedHeight(이미 화면에 그려진 rows 사이즈))
     //**************************************************
     //**************************************************
     const bottomScrollSpaceHeight = (data.length * rowHeight) - (topScrollSpaceHeight + pageHeight);
@@ -182,6 +183,8 @@ function _createBottomScrollSpaceElem(topScrollSpaceHeight = 0){
 function _addEventListener(){
 
     const component = this.opts.elem;
+    const tableBody = this.tableBody;
+
     const rowHeight = this.opts.rowHeight;
     const rowSize = this.opts.rowSize;
     const multipleRowCount = this.opts.multipleRowCount;
@@ -228,6 +231,18 @@ function _addEventListener(){
 		    _createBottomScrollSpaceElem.call(this, topScrollSpaceSize);
 		}
     }]);
+
+    Util.prop(tableBody, 'addEventListener', ['click', e => {
+
+        const elem = e.target;
+        const nodeName = elem.nodeName.toLowerCase();
+        const onSelectCell = this.opts.onSelectCell;
+
+        if (nodeName === 'td'){
+            onSelectCell.call(this, elem);
+        }
+
+    }]);
 }
 
 /**
@@ -245,7 +260,7 @@ function _addRowElems(startIndex = 0, endIndex = 0){
     const cols = this.opts.cols;
     const rowHeight = this.opts.rowHeight;
 
-    // data 길이에 맞게, 전체 길이를 변경시킨다.
+    // data 길이에 맞게, endIndex 값을 변경시킨다.
     endIndex = data.length < endIndex ? data.length : endIndex;
 
     for (let i = startIndex ; i < endIndex; i++){
@@ -261,7 +276,10 @@ function _addRowElems(startIndex = 0, endIndex = 0){
 
             const col = cols[ii];
 
-            if (!col.hidden) html.push(`<td>${item[col.name]}</td>`);
+            // 컬럼을 노출해야할 경우
+            if (!col.hidden){
+                html.push(`<td>${item[col.name]}</td>`);
+            }
         }
 
         html.push(`</tr>`);
