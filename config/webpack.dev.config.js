@@ -49,7 +49,7 @@ const config = {
         new HtmlWebpackPlugin({
             hash: true,
             inject: 'head',
-            template: path.join(rootPath, 'test/index.html')
+            template: path.join(rootPath, 'index.html')
         }),
         new ExtractTextPlugin('[name].css')
     ]
