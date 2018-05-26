@@ -15,6 +15,7 @@ const chai = require('chai');
 const expect = chai.expect;
 const should = chai.should;
 
+// 이 부분을 추가 export 영역으로 둘지는 좀더 생각해봐야겠다.
 const CLASS_NAME = {
     topScrollSpace: 'top-scroll-space',
     bottomScrollSpace: 'bottom-scroll-space',
