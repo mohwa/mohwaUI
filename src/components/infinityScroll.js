@@ -94,7 +94,7 @@ class InfinityScroll{
         const multipleRowCount = this.opts.multipleRowCount;
 
         // 컴포넌트 클래스명을 추가시킨다.
-        Util.prop(root, "className", `${Util.prop(root, 'className')} ${COMPONENT_CLASS_NAME}`);
+        Util.prop(root, 'className', `${Util.prop(root, 'className')} ${COMPONENT_CLASS_NAME}`);
 
         // 데이터가 비어있을 경우
         if (!data.length){
@@ -116,7 +116,7 @@ class InfinityScroll{
         const overflowHeight = tableBodyHeight <= pageHeight ? tableBodyHeight : pageHeight;
 
         // root 엘리먼트에 세로 사이즈를 할당한다.
-        Util.prop(root, "@height", `${overflowHeight}px`);
+        Util.prop(root, '@height', `${overflowHeight}px`);
 
         Util.attr(tableBody, 'tabindex', 0);
 
@@ -172,8 +172,13 @@ class InfinityScroll{
             Util.append(tableBody, tr);
         }
 
-        if (pageHeight < bottomScrollSpaceHeight) Util.prop(tr, '@height', `${bottomScrollSpaceHeight}px`);
-        else Util.remove(tr);
+        if (bottomScrollSpaceHeight > pageHeight){
+            Util.prop(tr, '@height', `${bottomScrollSpaceHeight}px`);
+        }
+        else{
+            // 더이상 스크롤할 공간이 없을 경우
+            Util.remove(tr);
+        }
     }
     /**
      *
@@ -271,13 +276,22 @@ class InfinityScroll{
 
             const item = data[i];
 
-            cols.forEach(v => {
+            if (cols.length){
 
-                // 컬럼을 노출해야할 경우
-                if (!v.hidden){
-                    html.push(`<td>${item[v.name]}</td>`);
+                cols.forEach(v => {
+
+                    // 컬럼을 노출해야할 경우
+                    if (!v.hidden){
+                        html.push(`<td>${item[v.name]}</td>`);
+                    }
+                });
+            }
+            else{
+
+                for (let k in item){
+                    html.push(`<td>${item[k]}</td>`);
                 }
-            });
+            }
 
             html.push(`</tr>`);
 

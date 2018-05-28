@@ -2,21 +2,19 @@
  * Created by mohwa on 2018. 5. 25..
  */
 
-const Base = require('../src/base');
-const Util = require('../src/assets/js/util');
+const base = require('../src/base');
+const componentClassName = base.componentClassName('infinity');
+const templateFilePath = require('./infinityScroll.spec.html');
 
 const InfinityScroll = require('../src/components/infinityScroll');
-
-const COMPONENT_CLASS_NAME = Base.componentClassName('infinity');
 
 const $ = require('jquery');
 const chai = require('chai');
 
 const expect = chai.expect;
-const should = chai.should;
 
 // 이 부분을 추가 export 영역으로 둘지는 좀더 생각해봐야겠다.
-const CLASS_NAME = {
+const className = {
     topScrollSpace: 'top-scroll-space',
     bottomScrollSpace: 'bottom-scroll-space',
     noDataText: 'no-data-text'
@@ -29,13 +27,25 @@ const CLASS_NAME = {
 // then:" 동작한 결과가 어떠해야한다"가 들어간다.
 describe('infinityScroll.js', () => {
 
+    let $div = null;
+    let instance = null;
+
+    let rowSize = 0;
+    let rowHeight = 0;
+    let pageHeight = 0;
+    let multipleRowCount = 0;
+
     const data = [];
 
-    let $div = null;
+    // before hook 은 describe 단위, beforeEach 는 it 단위로 실행된다.
+    before(() => {
 
-    beforeEach(() => {
+        rowSize = 5;
+        rowHeight = 30;
+        pageHeight = rowHeight * rowSize;
+        multipleRowCount = 2;
 
-        for (let i = 0; i < 10000; i++){
+        for (let i = 0; i < 1000; i++){
 
             data.push({
                 "Name": "Name" + i,
@@ -49,16 +59,24 @@ describe('infinityScroll.js', () => {
                 "testCodeName": "testCodeName" + i
             });
         }
-
-        $div = $('<div class=".infinity-container"><table><tbody></tbody></table></div>');
     });
 
-    describe('주요 엘리먼트 생성 테스트', () => {
+    beforeEach(() => {
 
-        it('최상위 컴포넌트 엘리먼트가 생성되는가?', () => {
+        $div = $(templateFilePath);
+        $(document.body).append($div);
+    });
+
+    afterEach(() => {
+        $div.remove();
+    });
+
+    describe('엘리먼트 생성 테스트', () => {
+
+        it('최상위 엘리먼트에 컴포넌트 클래스명(-mohwa-ui-infinity)이 할당된다.', () => {
 
             // given
-            const instance = new InfinityScroll({
+            instance = new InfinityScroll({
                 elem: $div.get(0)
             });
 
@@ -66,13 +84,13 @@ describe('infinityScroll.js', () => {
             instance.init();
 
             // then
-            expect($div.prop('className').indexOf(COMPONENT_CLASS_NAME)).to.not.equal(-1);
+            expect($div.prop('className').indexOf(componentClassName)).to.not.equal(-1);
         });
 
-        it('top scroll 영역을 갖는 엘리먼트가 생성되는가?', () => {
+        it('top scroll 영역을 갖는 엘리먼트가 생성된다.', () => {
 
             // given
-            const instance = new InfinityScroll({
+            instance = new InfinityScroll({
                 elem: $div.get(0),
                 data
             });
@@ -80,16 +98,16 @@ describe('infinityScroll.js', () => {
             // when
             instance.init();
 
-            const $topScrollSpaceElem = $div.find(`tbody tr.${CLASS_NAME.topScrollSpace}`);
+            const $topScrollSpaceElem = $div.find(`tbody tr.${className.topScrollSpace}`);
 
             // then
             expect($topScrollSpaceElem.get(0)).to.not.equal(undefined);
         });
 
-        it('bottom scroll 영역을 갖는 엘리먼트가 생성되는가?', () => {
+        it('bottom scroll 영역을 갖는 엘리먼트가 생성된다.', () => {
 
             // given
-            const instance = new InfinityScroll({
+            instance = new InfinityScroll({
                 elem: $div.get(0),
                 data
             });
@@ -97,7 +115,7 @@ describe('infinityScroll.js', () => {
             // when
             instance.init();
 
-            const $bottomScrollSpaceElem = $div.find(`tbody tr.${CLASS_NAME.bottomScrollSpace}`);
+            const $bottomScrollSpaceElem = $div.find(`tbody tr.${className.bottomScrollSpace}`);
 
             // then
             expect($bottomScrollSpaceElem.get(0)).to.not.equal(undefined);
@@ -106,10 +124,10 @@ describe('infinityScroll.js', () => {
 
     describe('리스트 테스트', () => {
 
-        it('데이터가 비어있을 경우, 리스트 엘리먼트를 생성하는가?', () => {
+        it('데이터가 비어있다면, `tr` 엘리먼트를 생성하지않는다.', () => {
 
             // given
-            const instance = new InfinityScroll({
+            instance = new InfinityScroll({
                 elem: $div.get(0),
                 data: []
             });
@@ -121,11 +139,13 @@ describe('infinityScroll.js', () => {
             expect($div.find('tbody tr').children().length).to.equal(0);
         });
 
-        it('데이터가 비어있을 경우, 첫 번째 엘리먼트에 `noDataText` 속성값을 출력하는가?', () => {
+        it('데이터가 비어있으면서 `noDataText` 속성을 전달했다면, 첫 번째 `tr > td` 엘리먼트에 `noDataText` 값이 할당된다.', () => {
+
+            // given
 
             const noDataText = '데이터가 없습니다';
-            // given
-            const instance = new InfinityScroll({
+
+            instance = new InfinityScroll({
                 elem: $div.get(0),
                 data: [],
                 noDataText: noDataText
@@ -135,7 +155,109 @@ describe('infinityScroll.js', () => {
             instance.init();
 
             // then
-            expect($div.find(`.${CLASS_NAME.noDataText}`).text()).to.equal(noDataText);
+            expect($div.find(`.${className.noDataText}`).text()).to.equal(noDataText);
+        });
+
+        it('리스트를 추가한다.', () => {
+
+            // given
+
+            instance = new InfinityScroll({
+                elem: $div.get(0),
+                data: data
+            });
+
+            // when
+            instance._addRowElems(0, 10);
+
+            const length = $div.find('tbody tr')
+            .not(`.${className.topScrollSpace}`)
+            .not(`.${className.bottomScrollSpace}`).length;
+
+            // then
+            expect(length).to.equal(10);
+        });
+
+        it('`topScrollSpace` 엘리먼트를 제외한 나머지 리스트를 전부 삭제한다.', () => {
+
+            // given
+            instance = new InfinityScroll({
+                elem: $div.get(0),
+                data
+            });
+
+            // when
+            instance._removeRows();
+
+            const length = $div.find('tbody tr')
+            .not(`.${className.topScrollSpace}`)
+            .not(`.${className.bottomScrollSpace}`).length;
+
+            // then
+            expect(length).to.equal(0);
+        });
+    });
+
+    describe('스크롤 테스트', () => {
+
+        it('컴포넌트 스크롤을, 두 번째 페이지의 시작만큼(150px) 스크롤하면, 그에 맞는 데이터가 보여지는가.', (done) => {
+
+            // given
+
+            instance = new InfinityScroll({
+                elem: $div.get(0),
+                data,
+                rowSize,
+                rowHeight,
+                multipleRowCount
+            });
+
+            // when
+            instance.init();
+
+            $div.scrollTop(pageHeight);
+
+            window.setTimeout(() => {
+
+                // 6번째 row 엘리먼트의 첫번째 col 데이터
+                const index = $div.find('tbody tr:nth-child(2) td:nth-child(1)').text().indexOf('Name5');
+
+                // then
+                expect(index).to.not.equal(-1);
+
+                done();
+
+            }, 100);
+        });
+
+        it('컴포넌트 스크롤을, 세 번째 페이지의 시작만큼(300px) 스크롤하면, 그에 맞는 데이터가 보여지는가.', (done) => {
+
+            // given
+
+            instance = new InfinityScroll({
+                elem: $div.get(0),
+                data,
+                rowSize,
+                rowHeight,
+                multipleRowCount
+            });
+
+            // when
+            instance.init();
+
+            $div.scrollTop(pageHeight * 2);
+
+            window.setTimeout(() => {
+
+                // 11번째 row 엘리먼트의 첫번째 col 데이터
+                const index = $div.find('tbody tr:nth-child(2) td:nth-child(1)').text().indexOf('Name10');
+
+                // then
+                expect(index).to.not.equal(-1);
+
+                done();
+
+            }, 100);
         });
     });
 });

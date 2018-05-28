@@ -3,17 +3,18 @@
  */
 
 const path = require('path');
-//const testPath = path.join(__dirname, 'test');
+const ExtractTextPlugin = require('extract-text-webpack-plugin');
 
 module.exports = function (config) {
+
     config.set({
         browsers: ['Chrome'],
-        reporters: ['progress'],
+        reporters: ['spec'],
         webpack: {
             //devtool: 'inline-source-map',
+            devtool: 'source-map',
             module: {
-                rules: [
-                {
+                rules: [{
                     test: /\.js$/,
                     include: ['test'],
                     use: {
@@ -24,29 +25,40 @@ module.exports = function (config) {
                             plugins: ['transform-runtime']
                         }
                     }
+                },
+                {
+                    test: /\.html$/,
+                    exclude: path.join(__dirname, 'index.html'),
+                    use: {
+                      loader: 'html-loader'
+                    }
                 }]
             }
         },
         frameworks: ['mocha'],
         files: [
-            './test/**/*.spec.js'
+            'test/**/*.spec.js',
+            'src/assets/sass/*.scss'
         ],
         plugins: [
             'karma-chrome-launcher',
+            'karma-safari-launcher',
             'karma-chai',
             'karma-mocha',
             'karma-sourcemap-loader',
             // 카르마에서 웹팩 트랜스파일링을 사용할 수 있게 해주는 플러그인
             'karma-webpack',
-            'karma-growl-reporter'
+            'karma-spec-reporter',
+            'karma-scss-preprocessor'
         ],
         preprocessors: {
-            './test/**/*.spec.js': ['webpack']
+            'test/**/*.spec.js': ['webpack', 'sourcemap'],
+            'src/assets/sass/*.scss': ['scss']
         },
-        coverageReporter: {
-            type: 'html',
-            dir: 'coverage'
-        },
+        //coverageReporter: {
+        //    type: 'html',
+        //    dir: 'coverage'
+        //},
         webpackMiddleware: {
             //please don't spam the console when running in karma!
             noInfo: true
