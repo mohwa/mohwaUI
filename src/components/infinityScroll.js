@@ -51,7 +51,7 @@ class InfinityScroll{
             throw new Error(ERR_MSG.notFoundTableBodyElement);
         }
 
-        this.opts = {
+        this._opts = {
             // root 엘리먼트
             elem,
             // 데이터
@@ -71,27 +71,27 @@ class InfinityScroll{
         };
 
         // tbody 엘리먼트
-        this.tableBody = tableBody;
+        this._tableBody = tableBody;
 
         // 활성회된 현재 페이지 번호
-        this.activetedPageNum = 0;
+        this._activetedPageNum = 0;
 
         // 활성화된 이전(임시) 페이지 번호
-        this.tmpPageNum = 0;
+        this._tmpPageNum = 0;
     }
     /**
      * 초기화 함수
      */
     init(){
 
-        const root = this.opts.elem;
-        const tableBody = this.tableBody;
+        const root = this._opts.elem;
+        const tableBody = this._tableBody;
 
-        const data = this.opts.data;
-        const rowHeight = this.opts.rowHeight;
-        const rowSize = this.opts.rowSize;
+        const data = this._opts.data;
+        const rowHeight = this._opts.rowHeight;
+        const rowSize = this._opts.rowSize;
 
-        const multipleRowCount = this.opts.multipleRowCount;
+        const multipleRowCount = this._opts.multipleRowCount;
 
         // 컴포넌트 클래스명을 추가시킨다.
         domUtil.prop(root, 'className', `${domUtil.prop(root, 'className')} ${COMPONENT_CLASS_NAME}`);
@@ -132,7 +132,7 @@ class InfinityScroll{
      */
     _createTopScrollSpaceElem(){
 
-        const tableBody = this.tableBody;
+        const tableBody = this._tableBody;
         const html = `<tr class="${CLASS_NAME.topScrollSpace}" style="height:0px"></tr>`;
 
         const tr = domUtil.el('tbody', {"innerHTML": html}).firstChild;
@@ -147,11 +147,11 @@ class InfinityScroll{
      */
     _createBottomScrollSpaceElem(topScrollSpaceHeight = 0){
 
-        const rowHeight = this.opts.rowHeight;
-        const rowSize = this.opts.rowSize;
-        const data = this.opts.data;
+        const rowHeight = this._opts.rowHeight;
+        const rowSize = this._opts.rowSize;
+        const data = this._opts.data;
 
-        const tableBody = this.tableBody;
+        const tableBody = this._tableBody;
 
         const pageHeight = rowHeight * rowSize;
 
@@ -194,12 +194,12 @@ class InfinityScroll{
      */
     _addEventListener(){
 
-        const component = this.opts.elem;
-        const tableBody = this.tableBody;
+        const component = this._opts.elem;
+        const tableBody = this._tableBody;
 
-        const rowHeight = this.opts.rowHeight;
-        const rowSize = this.opts.rowSize;
-        const multipleRowCount = this.opts.multipleRowCount;
+        const rowHeight = this._opts.rowHeight;
+        const rowSize = this._opts.rowSize;
+        const multipleRowCount = this._opts.multipleRowCount;
 
         // multipleRowCount 반 사이즈
         // 전달받은 rowSize 에 multipleRowCount 를 곱해준 row 갯수 반만큼을 갱신할 row 갯수로 설정한다.
@@ -215,7 +215,7 @@ class InfinityScroll{
             const pageHeight = rowHeight * rowSize;
 
             // 현재 활성화된 페이지 번호
-            const activetedPageNum = this.activetedPageNum = parseInt(elem.scrollTop / (pageHeight * halfMultipleRowCount));
+            const activetedPageNum = this._activetedPageNum = parseInt(elem.scrollTop / (pageHeight * halfMultipleRowCount));
 
             // 데이터의 시작 index(0 페이지일때는 0, 1 페이지일때는 10 부터 시작한다)
             let startIndex = (activetedPageNum * rowSize) * halfMultipleRowCount;
@@ -223,7 +223,7 @@ class InfinityScroll{
             let endIndex = startIndex + (rowSize * multipleRowCount);
 
             // 스크롤을 통해, 현재 페이지 번호가 변경될경우
-            if (activetedPageNum !== this.tmpPageNum){
+            if (activetedPageNum !== this._tmpPageNum){
 
                 const topScrollSpaceElem = domUtil.sel(`.${CLASS_NAME.topScrollSpace}`, component);
                 const topScrollSpaceSize = ((activetedPageNum * rowSize) * rowHeight) * halfMultipleRowCount;
@@ -231,7 +231,7 @@ class InfinityScroll{
                 domUtil.prop(topScrollSpaceElem, '@height', `${topScrollSpaceSize}px`);
 
                 // 활성화된 페이지 번호를 임시 변수에 저장한다.
-                this.tmpPageNum = activetedPageNum;
+                this._tmpPageNum = activetedPageNum;
 
                 // 추가된 이전 노드들을 모두 삭제한다.
                 this._removeRows();
@@ -248,7 +248,7 @@ class InfinityScroll{
 
             const elem = e.target;
             const nodeName = elem.nodeName.toLowerCase();
-            const onSelectCell = this.opts.onSelectCell;
+            const onSelectCell = this._opts.onSelectCell;
 
             if (nodeName === 'td'){
                 onSelectCell.call(this, elem);
@@ -266,10 +266,10 @@ class InfinityScroll{
      */
     _addRowElems(startIndex = 0, endIndex = 0){
 
-        const tableBody = this.tableBody;
-        const data = this.opts.data;
-        const cols = this.opts.cols;
-        const rowHeight = this.opts.rowHeight;
+        const tableBody = this._tableBody;
+        const data = this._opts.data;
+        const cols = this._opts.cols;
+        const rowHeight = this._opts.rowHeight;
 
         // data 길이에 맞게, endIndex 값을 변경시킨다.
         endIndex = data.length < endIndex ? data.length : endIndex;
@@ -311,8 +311,8 @@ class InfinityScroll{
      * @private
      */
     _setNoDataText(){
-        const tableBody = this.tableBody;
-        const noDataText = this.opts.noDataText;
+        const tableBody = this._tableBody;
+        const noDataText = this._opts.noDataText;
 
         if (type.isEmpty(noDataText)) return;
 
@@ -328,7 +328,7 @@ class InfinityScroll{
      */
     _removeRows(){
 
-        const tableBody = this.tableBody;
+        const tableBody = this._tableBody;
         const elems = domUtil.children(tableBody, 'tr');
 
         const length = elems.length;
