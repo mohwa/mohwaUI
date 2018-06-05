@@ -1,22 +1,22 @@
-/**
- * Created by mohwa on 2018. 4. 21..
- */
 
 /**
-*
+* 타입 객체
 */
-const Type = {
+const type = {
     /**
      * 순수 오브젝트 타입 여부를 반환한다.
      */
     isPlainObject(v = null){
         return v && v.constructor === Object;
     },
+    /**
+     * 함수 타입 여부를 반환한다.
+     */
     isFunction(v = null){
         return typeof v === 'function';
     },
     /**
-     *
+     * null 타입 여부를 반환한다.
      */
     isNull(v){
         return v === null;
@@ -44,11 +44,11 @@ const Type = {
         v === '';
     },
     /**
-     *
+     * 엘리먼트 노드 여부를 반환한다.
      */
     isElement(v = null){
         return v && v.nodeType === Node.ELEMENT_NODE;
     }
 };
 
-module.exports = Type;
+module.exports = type;

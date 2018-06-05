@@ -4,7 +4,8 @@
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="apple-mobile-web-app-title">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+	<meta name="viewport"
+	      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
 
 	<meta name="apple-mobile-web-app-capable" content="yes">
 	<meta name="apple-touch-fullscreen" content="yes">
@@ -15,85 +16,84 @@
 
 	<style type="text/css">
 
-	html, body {
-		font-family: "Courier New", Courier, monospace;
-	}
+		html, body {
+			font-family: "Courier New", Courier, monospace;
+		}
 
-	#input_search {
+		#input_search {
 
-		width:200px;
-		height:50px;
+			width: 200px;
+			height: 50px;
 
-		margin-top:100px;
-		margin-left:300px;
+			margin-top: 100px;
+			margin-left: 300px;
 
-		outline: 0;
-	}
+			outline: 0;
+		}
 
-	.header-table {
-		min-width: 1320px;
-		border: gray 1px solid;
-	}
+		.header-table {
+			min-width: 1050px;
+			border: gray 1px solid;
+		}
 
-	.header-table thead{
-		background: #F5F5F5;
-	}
+		.header-table thead {
+			background: #F5F5F5;
+		}
 
-	.header-table thead th{
-		height: 50px;
-	}
+		.header-table thead th {
+			height: 50px;
+		}
 
-	.data-table {
-		min-width: 1320px;
-		border: gray 1px solid;
-	}
+		.data-table {
+			min-width: 1050px;
+			border: gray 1px solid;
+		}
 
-	.header-table th, .data-table td{
-		border: gray 1px solid;
-		text-align: center;
-	}
+		.header-table th, .data-table td {
+			border: gray 1px solid;
+			text-align: center;
+		}
 
-	.data-table tr:nth-child(odd){
-		background: #F5F5F5;
-	}
+		.data-table tr:nth-child(odd) {
+			background: #F5F5F5;
+		}
 
-	.header-table th:nth-child(1), .data-table td:nth-child(1){
-		width: 130px;
-		word-break: break-all;
-	}
+		.header-table th:nth-child(1), .data-table td:nth-child(1) {
+			width: 130px;
+			word-break: break-all;
+		}
 
-	.header-table th:nth-child(2), .data-table td:nth-child(2){
-		width: 120px;
-	}
+		.header-table th:nth-child(2), .data-table td:nth-child(2) {
+			width: 120px;
+		}
 
-	.header-table th:nth-child(3), .data-table td:nth-child(3){
-		width: 200px;
-	}
+		.header-table th:nth-child(3), .data-table td:nth-child(3) {
+			width: 200px;
+		}
 
-	.header-table th:nth-child(4), .data-table td:nth-child(4){
-		width: 200px;
-	}
+		.header-table th:nth-child(4), .data-table td:nth-child(4) {
+			width: 200px;
+		}
 
-	.header-table th:nth-child(5){
-		width: 200px;
-	}
+		.header-table th:nth-child(5) {
+			width: 200px;
+		}
 
-	.data-table td:nth-child(5){
-		width: 200px;
-	}
+		.data-table td:nth-child(5) {
+			width: 200px;
+		}
 
-	.header-table th:nth-child(6){
-		width: 200px;
-	}
+		.header-table th:nth-child(6) {
+			width: 200px;
+		}
 
-	.data-table td:nth-child(6){
-		width: 200px;
-	}
+		.data-table td:nth-child(6) {
+			width: 200px;
+		}
 
-	.infinity-area{
-		width: 100%;
-		border-top: none;
-	}
+		.infinity-area {
+			border-top: none;
+		}
 
 	</style>
 
@@ -101,19 +101,19 @@
 </head>
 <body>
 
-<input type="text" id="input_search" />
+<input type="text" id="input_search"/>
 
 <div style="margin-top:20px;margin-left: 10px">
 	<table class="header-table">
 		<thead>
-			<tr>
-				<th>Customer Name</th>
-				<th>Salary</th>
-				<th>Date</th>
-				<th>log Name</th>
-				<th>State Name</th>
-				<th>Test Code</th>
-			</tr>
+		<tr>
+			<th>Customer Name</th>
+			<th>Salary</th>
+			<th>Date</th>
+			<th>log Name</th>
+			<th>State Name</th>
+			<th>Test Code</th>
+		</tr>
 		</thead>
 	</table>
 	<div class="infinity-area">
@@ -130,11 +130,11 @@
 		data: {
 			url: '/suggest/search'
 		},
-		onSelected: function(v){
+		onSelected: function (v){
 			console.log(v);
 //			top.location.href = 'https://www.google.com/search?q=' + window.encodeURIComponent(v);
 		},
-		onEnter: function(v){
+		onEnter: function (v){
 
 			console.log(v);
 //			top.location.href = 'https://search.naver.com/search.naver?query=' + window.encodeURIComponent(v);
@@ -146,37 +146,37 @@
 
 	for (var i = 0; i < 10000; i++){
 
-	    list.push({
-	        "Name": "Name" + i,
-	        "logCode": "logCode" + i,
-	        "logCodeName": "logCodeName" + i,
-	        "date": new Date().getTime(),
-	        "Salary": "Salary" + i,
-	        "stateCode": "stateCode" + i,
-	        "stateCodeName": "stateCodeName",
-	        "testCode": "testCode" + i,
-	        "testCodeName": "testCodeName" + i
-	    });
+		list.push({
+			"Name": "Name" + i,
+			"logCode": "logCode" + i,
+			"logCodeName": "logCodeName" + i,
+			"date": new Date().getTime(),
+			"Salary": "Salary" + i,
+			"stateCode": "stateCode" + i,
+			"stateCodeName": "stateCodeName",
+			"testCode": "testCode" + i,
+			"testCodeName": "testCodeName" + i
+		});
 	}
 
 
 	new MohwaUI.InfinityScroll({
 		elem: document.querySelector('.infinity-area'),
 		data: list,
-//		cols: [
-//			{name: 'logCode', hidden: true},
-//			{name: 'stateCode', hidden: true},
-//			{name: 'testCode', hidden: true},
-//			{name: 'Name'},
-//			{name: 'Salary'},
-//			{name: 'date'},
-//			{name: 'logCodeName'},
-//			{name: 'stateCodeName'},
-//			{name: 'testCodeName'}
-//		],
+		cols: [
+			{name: 'logCode', hidden: true},
+			{name: 'stateCode', hidden: true},
+			{name: 'testCode', hidden: true},
+			{name: 'Name'},
+			{name: 'Salary'},
+			{name: 'date'},
+			{name: 'logCodeName'},
+			{name: 'stateCodeName'},
+			{name: 'testCodeName'}
+		],
 		rowHeight: 40,
 		pageSize: 5,
-		onSelectCell: function(elem){
+		onSelectCell: function (elem){
 			console.log('cell', this, elem);
 		}
 	}).init();

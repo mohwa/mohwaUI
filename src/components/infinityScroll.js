@@ -2,11 +2,11 @@
  * Created by mohwa on 2018. 5. 23..
  */
 
+const domUtil = require('../assets/js/domUtil');
+const util = require('../assets/js/util');
+const type = require('../assets/js/type');
 
 const BASE = require('../base');
-const Util = require('../assets/js/util');
-const Type = require('../assets/js/type');
-
 
 const COMPONENT_CLASS_NAME = BASE.componentClassName('infinity');
 
@@ -39,15 +39,15 @@ class InfinityScroll{
     } = {}){
 
         // 전달받은 엘리먼트가 엘리먼트 타입이 아닐 경우
-        if (!Type.isElement(elem)){
+        if (!type.isElement(elem)){
             throw new Error(ERR_MSG.notElementType);
         }
 
         // elem 자식인 tbody 엘리먼트를 가져온다.
-        const tableBody = Util.sel('tbody', elem);
+        const tableBody = domUtil.sel('tbody', elem);
 
         // 전달받은 엘리먼트의 자식 엘리먼트에 tbody 엘리먼트가 없을 경우
-        if (!Type.isElement(tableBody)){
+        if (!type.isElement(tableBody)){
             throw new Error(ERR_MSG.notFoundTableBodyElement);
         }
 
@@ -94,7 +94,7 @@ class InfinityScroll{
         const multipleRowCount = this.opts.multipleRowCount;
 
         // 컴포넌트 클래스명을 추가시킨다.
-        Util.prop(root, 'className', `${Util.prop(root, 'className')} ${COMPONENT_CLASS_NAME}`);
+        domUtil.prop(root, 'className', `${domUtil.prop(root, 'className')} ${COMPONENT_CLASS_NAME}`);
 
         // 데이터가 비어있을 경우
         if (!data.length){
@@ -110,15 +110,17 @@ class InfinityScroll{
 
         // 페이지당 총 세로 사이즈
         const pageHeight = rowHeight * rowSize;
-        const tableBodyHeight = parseInt(Util.prop(tableBody, '@height'));
+        const tableBodyWidth = parseInt(domUtil.prop(tableBody, '@width'));
+        const tableBodyHeight = parseInt(domUtil.prop(tableBody, '@height'));
 
         // 실제 보여질 overflow 사이즈
         const overflowHeight = tableBodyHeight <= pageHeight ? tableBodyHeight : pageHeight;
 
-        // root 엘리먼트에 세로 사이즈를 할당한다.
-        Util.prop(root, '@height', `${overflowHeight}px`);
+        // root 엘리먼트에 가로/세로 사이즈를 할당한다.
+        domUtil.prop(root, '@width', `${(tableBodyWidth + 1)}px`);
+        domUtil.prop(root, '@height', `${overflowHeight}px`);
 
-        Util.attr(tableBody, 'tabindex', 0);
+        domUtil.attr(tableBody, 'tabindex', 0);
 
         this._addEventListener();
     }
@@ -133,9 +135,9 @@ class InfinityScroll{
         const tableBody = this.tableBody;
         const html = `<tr class="${CLASS_NAME.topScrollSpace}" style="height:0px"></tr>`;
 
-        const tr = Util.el('tbody', {"innerHTML": html}).firstChild;
+        const tr = domUtil.el('tbody', {"innerHTML": html}).firstChild;
 
-        Util.prepend(tableBody, tr);
+        domUtil.prepend(tableBody, tr);
     }
     /**
      *
@@ -162,22 +164,22 @@ class InfinityScroll{
         //**************************************************
         const bottomScrollSpaceHeight = (data.length * rowHeight) - (topScrollSpaceHeight + pageHeight);
 
-        let tr = Util.sel(`.${CLASS_NAME.bottomScrollSpace}`, tableBody);
+        let tr = domUtil.sel(`.${CLASS_NAME.bottomScrollSpace}`, tableBody);
 
         // bottomScrollSpace 엘리먼트가 없을 경우
-        if (!Type.isElement(tr)){
+        if (!type.isElement(tr)){
 
             // bottomScrollSpace 엘리먼트를 추가한다.
-            tr = Util.el('tbody', {"innerHTML": `<tr class="${CLASS_NAME.bottomScrollSpace}"></tr>`}).firstChild;
-            Util.append(tableBody, tr);
+            tr = domUtil.el('tbody', {"innerHTML": `<tr class="${CLASS_NAME.bottomScrollSpace}"></tr>`}).firstChild;
+            domUtil.append(tableBody, tr);
         }
 
         if (bottomScrollSpaceHeight > pageHeight){
-            Util.prop(tr, '@height', `${bottomScrollSpaceHeight}px`);
+            domUtil.prop(tr, '@height', `${bottomScrollSpaceHeight}px`);
         }
         else{
             // 더이상 스크롤할 공간이 없을 경우
-            Util.remove(tr);
+            domUtil.remove(tr);
         }
     }
     /**
@@ -201,7 +203,7 @@ class InfinityScroll{
         // rowSize(5) * multipleRowCount(4) = 20 / (multipleRowCount / 2)(=> 2) = 결과: 10
         const halfMultipleRowCount = multipleRowCount / 2;
 
-        Util.prop(component, 'addEventListener', ['scroll', e => {
+        domUtil.prop(component, 'addEventListener', ['scroll', e => {
 
             const elem = e.target;
 
@@ -219,10 +221,10 @@ class InfinityScroll{
             // 스크롤을 통해, 현재 페이지 번호가 변경될경우
             if (activetedPageNum !== this.tmpPageNum){
 
-                const topScrollSpaceElem = Util.sel(`.${CLASS_NAME.topScrollSpace}`, component);
+                const topScrollSpaceElem = domUtil.sel(`.${CLASS_NAME.topScrollSpace}`, component);
                 const topScrollSpaceSize = ((activetedPageNum * rowSize) * rowHeight) * halfMultipleRowCount;
 
-                Util.prop(topScrollSpaceElem, '@height', `${topScrollSpaceSize}px`);
+                domUtil.prop(topScrollSpaceElem, '@height', `${topScrollSpaceSize}px`);
 
                 // 활성화된 페이지 번호를 임시 변수에 저장한다.
                 this.tmpPageNum = activetedPageNum;
@@ -238,7 +240,7 @@ class InfinityScroll{
             }
         }]);
 
-        Util.prop(tableBody, 'addEventListener', ['click', e => {
+        domUtil.prop(tableBody, 'addEventListener', ['click', e => {
 
             const elem = e.target;
             const nodeName = elem.nodeName.toLowerCase();
@@ -295,7 +297,7 @@ class InfinityScroll{
 
             html.push(`</tr>`);
 
-            Util.append(tableBody, Util.el('tbody', {"innerHTML": html.join('')}).firstChild);
+            domUtil.append(tableBody, domUtil.el('tbody', {"innerHTML": html.join('')}).firstChild);
         }
     }
     /**
@@ -308,11 +310,11 @@ class InfinityScroll{
         const tableBody = this.tableBody;
         const noDataText = this.opts.noDataText;
 
-        if (Type.isEmpty(noDataText)) return;
+        if (type.isEmpty(noDataText)) return;
 
         const html = `<tr class="${CLASS_NAME.noDataText}"><td>${noDataText}</td></tr>`;
 
-        Util.append(tableBody, Util.el('tbody', {"innerHTML": html}).firstChild);
+        domUtil.append(tableBody, domUtil.el('tbody', {"innerHTML": html}).firstChild);
     }
     /**
      *
@@ -323,7 +325,7 @@ class InfinityScroll{
     _removeRows(){
 
         const tableBody = this.tableBody;
-        const elems = Util.children(tableBody, 'tr');
+        const elems = domUtil.children(tableBody, 'tr');
 
         const length = elems.length;
 
@@ -331,7 +333,7 @@ class InfinityScroll{
 
             const elem = elems[i];
 
-            Util.remove(elem);
+            domUtil.remove(elem);
         }
     }
 }

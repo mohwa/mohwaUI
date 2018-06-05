@@ -2,10 +2,11 @@
  * Created by mohwa on 2018. 4. 21..
  */
 
+const domUtil = require('../assets/js/domUtil');
+const util = require('../assets/js/util');
+const type = require('../assets/js/type');
 
 const BASE = require('../base');
-const Util = require('../assets/js/util');
-const Type = require('../assets/js/type');
 
 // 문자 조합/분리 모듈
 const Ganada = require('ganada');
@@ -70,7 +71,7 @@ class Suggest{
 
         _setSearchListPosition.call(this);
 
-        Util.after(root, component);
+        domUtil.after(root, component);
 
         _addEventListener.call(this);
     }
@@ -93,7 +94,7 @@ function _createElement(){
     html.push('</div>');
     html.push('</div>');
 
-    return Util.el('div', {'innerHTML': html.join('')}).firstChild;
+    return domUtil.el('div', {'innerHTML': html.join('')}).firstChild;
 }
 
 /**
@@ -108,9 +109,9 @@ function _addEventListener(){
     const component = this.component;
     const onEnter = this.opts.onEnter;
 
-    const ul = Util.sel('ul', component);
+    const ul = domUtil.sel('ul', component);
 
-    Util.prop(root, 'addEventListener', ['keyup', e => {
+    domUtil.prop(root, 'addEventListener', ['keyup', e => {
 
         const elem = e.target;
 
@@ -120,7 +121,7 @@ function _addEventListener(){
         if (_isPreventKeyCode.call(this, e)) return;
 
         // 공백 처리
-        if (Type.isEmpty(val)){
+        if (type.isEmpty(val)){
             _hide.call(this);
             return;
         }
@@ -134,14 +135,14 @@ function _addEventListener(){
 
         if (list.length){
 
-            Util.prop(ul, 'innerHTML', list.join(''));
+            domUtil.prop(ul, 'innerHTML', list.join(''));
 
             _show.call(this);
         }
     }]);
 
 
-    Util.prop(ul, 'addEventListener', ['click', e => {
+    domUtil.prop(ul, 'addEventListener', ['click', e => {
 
         const elem = e.target;
         const nodeName = elem.nodeName.toLowerCase();
@@ -153,7 +154,7 @@ function _addEventListener(){
             return;
         }
 
-        const li = (nodeName === 'a' || nodeName === 'b') ? Util.parents(elem, 'li')[0] : elem;
+        const li = (nodeName === 'a' || nodeName === 'b') ? domUtil.parents(elem, 'li')[0] : elem;
 
         const text = _getElemText(li);
 
@@ -163,15 +164,15 @@ function _addEventListener(){
 
         _addFocusClassName(li);
 
-        Util.sel('a', li).focus();
+        domUtil.sel('a', li).focus();
 
-        Util.prop(root, 'value', text);
+        domUtil.prop(root, 'value', text);
 
         this.activedItem = li;
     }]);
 
     // 문서 엘리먼트를 클릭한 경우.
-    Util.prop(document, 'addEventListener', ['click', e => {
+    domUtil.prop(document, 'addEventListener', ['click', e => {
 
         const elem = e.target;
 
@@ -197,7 +198,7 @@ function _addEventListener(){
 
     function enterKeyDown(){
 
-        Type.isFunction(onEnter) && onEnter.call(this, root.value);
+        type.isFunction(onEnter) && onEnter.call(this, root.value);
         _hide.call(this);
     }
 }
@@ -214,14 +215,14 @@ function _setSearchListPosition(){
     const component = this.component;
 
     // root 엘리먼트의 절대 수치를 반환한다.
-    const offset = Util.offset(root);
+    const offset = domUtil.offset(root);
 
-    const width = Util.outerWidth(root);
-    const height = Util.outerHeight(root);
+    const width = domUtil.outerWidth(root);
+    const height = domUtil.outerHeight(root);
 
     const top = offset.top + height;
 
-    Util.prop(component, {
+    domUtil.prop(component, {
         '@width': `${width}px`,
         '@top': `${top}px`,
         '@left': `${offset.left}px`
@@ -235,7 +236,7 @@ function _setSearchListPosition(){
  * @private
  */
 function _show(){
-    Util.prop(this.component, '@display', 'block');
+    domUtil.prop(this.component, '@display', 'block');
 }
 
 /**
@@ -245,7 +246,7 @@ function _show(){
  * @private
  */
 function _hide(){
-    Util.prop(this.component, '@display', 'none');
+    domUtil.prop(this.component, '@display', 'none');
 }
 
 /**
@@ -296,7 +297,7 @@ function _up(e = {}){
 
     const root = this.opts.elem;
 
-    if (Type.isEmpty(root.value)) return;
+    if (type.isEmpty(root.value)) return;
 
     _show.call(this);
 
@@ -305,9 +306,9 @@ function _up(e = {}){
     const lastElem = _getLastListElement.call(this, 0);
     const activedItem = this.activedItem;
 
-    const prevElem = Type.isNull(activedItem) ? lastElem : Util.prev(activedItem);
+    const prevElem = type.isNull(activedItem) ? lastElem : domUtil.prev(activedItem);
 
-    if (!Type.isNull(activedItem)){
+    if (!type.isNull(activedItem)){
         _addBlurClassName(activedItem);
     }
 
@@ -316,15 +317,15 @@ function _up(e = {}){
         const text = _getElemText(prevElem);
 
         _addFocusClassName(prevElem);
-        Util.prop(root, 'value', text);
+        domUtil.prop(root, 'value', text);
 
-        //Util.sel('a', prevElem).focus();
+        //domUtil.sel('a', prevElem).focus();
 
         this.activedItem = prevElem;
     }
     else{
 
-        Util.prop(root, 'value', searchedText);
+        domUtil.prop(root, 'value', searchedText);
         this.activedItem = null;
     }
 
@@ -341,18 +342,18 @@ function _down(e = {}){
 
     const root = this.opts.elem;
 
-    if (Type.isEmpty(root.value)) return;
+    if (type.isEmpty(root.value)) return;
 
     _show.call(this);
 
     const firstElem = _getFirstListElement.call(this);
     const activedItem = this.activedItem;
 
-    const nextElem = Type.isNull(activedItem) ? firstElem : Util.next(activedItem);
+    const nextElem = type.isNull(activedItem) ? firstElem : domUtil.next(activedItem);
 
     const searchedText = this.searchedText;
 
-    if (!Type.isNull(activedItem)){
+    if (!type.isNull(activedItem)){
         _addBlurClassName(activedItem);
     }
 
@@ -361,15 +362,15 @@ function _down(e = {}){
         const text = _getElemText(nextElem);
 
         _addFocusClassName(nextElem);
-        Util.prop(root, 'value', text);
+        domUtil.prop(root, 'value', text);
 
-        //Util.sel('a', nextElem).focus();
+        //domUtil.sel('a', nextElem).focus();
 
         this.activedItem = nextElem;
     }
     else{
 
-        Util.prop(root, 'value', searchedText);
+        domUtil.prop(root, 'value', searchedText);
         this.activedItem = null;
     }
 
@@ -385,7 +386,7 @@ function _down(e = {}){
  */
 function _getFirstListElement(){
 
-    return Util.sels('li', this.component)[0];
+    return domUtil.sels('li', this.component)[0];
 }
 
 /**
@@ -397,7 +398,7 @@ function _getFirstListElement(){
  */
 function _getLastListElement(){
 
-    const elems = Util.sels('li', this.component);
+    const elems = domUtil.sels('li', this.component);
 
     return elems[elems.length - 1];
 }
@@ -408,7 +409,7 @@ function _getLastListElement(){
  * @param ul
  */
 function _clearSearchedList(ul = null){
-    Util.prop(ul, 'innerHTML', '');
+    domUtil.prop(ul, 'innerHTML', '');
 }
 
 
@@ -424,7 +425,7 @@ function _getSearchData(){
 
     return new Promise((resolve, reject) => {
 
-        if (Type.isPlainObject(data)){
+        if (type.isPlainObject(data)){
 
             const url = data.url;
             const method = data.method || 'get';
@@ -486,7 +487,7 @@ function _createSearchList(val = '', data = []){
  * @private
  */
 function _addBlurClassName(elem = null){
-    Util.prop(elem, 'className', 'blur');
+    domUtil.prop(elem, 'className', 'blur');
 }
 
 /**
@@ -497,7 +498,7 @@ function _addBlurClassName(elem = null){
  * @private
  */
 function _addFocusClassName(elem = null){
-    Util.prop(elem, 'className', 'focus');
+    domUtil.prop(elem, 'className', 'focus');
 }
 
 /**
@@ -513,7 +514,7 @@ function _isClose(elem = null){
     const className = `.${COMPONENT_CLASS_NAME}`;
 
     // 전달받은 엘리먼트가 input 엘리먼트가 아니거나, searchList 엘리먼트가 아닌 경우 true 를 반환한다.
-    return Util.next(elem) !== Util.sel(className) && !Util.parents(elem, className).length;
+    return domUtil.next(elem) !== domUtil.sel(className) && !domUtil.parents(elem, className).length;
 }
 
 /**
@@ -525,7 +526,7 @@ function _isClose(elem = null){
  * @private
  */
 function _getElemText(elem = null){
-    return Util.prop(elem, 'innerText');
+    return domUtil.prop(elem, 'innerText');
 }
 
 
