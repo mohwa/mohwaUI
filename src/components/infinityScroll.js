@@ -162,7 +162,11 @@ class InfinityScroll{
         // (data.length * rowHeight(전체 데이터를 노출 시키기위해 필요한 사이즈)) - (topScrollSpaceHeight(사용자가 스크롤한 사이즈) + resolvedHeight(이미 화면에 그려진 rows 사이즈))
         //**************************************************
         //**************************************************
-        const bottomScrollSpaceHeight = (data.length * rowHeight) - (topScrollSpaceHeight + pageHeight);
+        // 아이템의 전체 높이
+        const fullHeight = data.length * rowHeight;
+        // 바닥 공간 높이(fullHeight - ((topScrollSpaceHeight + pageHeight) + 현재 랜더링된 아이템 전체 높이))
+        // 현재 랜더링된 아이템 전체 높이가 빠져있다(추가해야한다!!)
+        const bottomScrollSpaceHeight = fullHeight - (topScrollSpaceHeight + pageHeight);
 
         let tr = domUtil.sel(`.${CLASS_NAME.bottomScrollSpace}`, tableBody);
 

@@ -7908,7 +7908,11 @@ var InfinityScroll = function () {
             // (data.length * rowHeight(전체 데이터를 노출 시키기위해 필요한 사이즈)) - (topScrollSpaceHeight(사용자가 스크롤한 사이즈) + resolvedHeight(이미 화면에 그려진 rows 사이즈))
             //**************************************************
             //**************************************************
-            var bottomScrollSpaceHeight = data.length * rowHeight - (topScrollSpaceHeight + pageHeight);
+            // 아이템의 전체 높이
+            var fullHeight = data.length * rowHeight;
+            // 바닥 공간 높이(fullHeight - ((topScrollSpaceHeight + pageHeight) + 현재 랜더링된 아이템 전체 높이))
+            // 현재 랜더링된 아이템 전체 높이가 빠져있다(추가해야한다!!)
+            var bottomScrollSpaceHeight = fullHeight - (topScrollSpaceHeight + pageHeight);
 
             var tr = domUtil.sel('.' + CLASS_NAME.bottomScrollSpace, tableBody);
 
