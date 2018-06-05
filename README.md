@@ -42,7 +42,7 @@ const MohwaUI = require('mohwa-ui');
 
 - 자동 (연관)검색 기능을 위한, 컴포넌트
 
-- [실행 소스 및 데모 보기](http://jsfiddle.net/mohwa/gznkrwjp/7/)
+- [실행 소스 및 데모 보기](https://jsfiddle.net/mohwa/gznkrwjp/10/)
 
 프로퍼티
 
@@ -64,7 +64,7 @@ ___
 
 - 일정한 엘리먼트 갯수로, 무한 스크롤 테이블을 만들 수 있는 컴포넌트
 
-- [실행 소스 및 데모 보기](https://jsfiddle.net/mohwa/Lsv7fx3f/)
+- [실행 소스 및 데모 보기](https://jsfiddle.net/mohwa/Lsv7fx3f/28/)
 
 프로퍼티
 
