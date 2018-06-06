@@ -209,7 +209,8 @@ class InfinityScroll{
 
         domUtil.prop(component, 'addEventListener', ['scroll', e => {
 
-            const elem = e.target;
+            // 이벤트가 바인딩된 엘리먼트
+            const elem = e.currentTarget;
 
             // 페이지당 세로 사이즈
             const pageHeight = rowHeight * rowSize;
@@ -246,13 +247,13 @@ class InfinityScroll{
 
         domUtil.prop(tableBody, 'addEventListener', ['click', e => {
 
+            // 이벤트가 발생된 엘리먼트
             const elem = e.target;
+
             const nodeName = elem.nodeName.toLowerCase();
             const onSelectCell = this._opts.onSelectCell;
 
-            if (nodeName === 'td'){
-                onSelectCell.call(this, elem);
-            }
+            onSelectCell.call(this, elem);
 
         }]);
     }

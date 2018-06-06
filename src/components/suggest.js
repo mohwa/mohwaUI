@@ -110,7 +110,8 @@ class Suggest{
 
         domUtil.prop(root, 'addEventListener', ['keyup', e => {
 
-            const elem = e.target;
+            // 이벤트가 바인딩된 엘리먼트
+            const elem = e.currentTarget;
 
             const val = elem.value;
 
@@ -141,7 +142,9 @@ class Suggest{
 
         domUtil.prop(ul, 'addEventListener', ['click', e => {
 
+            // 이벤트가 발생된 엘리먼트
             const elem = e.target;
+
             const nodeName = elem.nodeName.toLowerCase();
             const activeItem = this._activedItem;
 
@@ -171,6 +174,7 @@ class Suggest{
         // 문서 엘리먼트를 클릭한 경우.
         domUtil.prop(document, 'addEventListener', ['click', e => {
 
+            // 이벤트가 발생된 엘리먼트
             const elem = e.target;
 
             if (this._isClose(elem)) this._hide();
