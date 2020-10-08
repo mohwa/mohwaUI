@@ -10,7 +10,7 @@
 	<meta name="apple-mobile-web-app-capable" content="yes">
 	<meta name="apple-touch-fullscreen" content="yes">
 	<meta name="description">
-	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+	<!--<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>-->
 
 	<title></title>
 
@@ -124,7 +124,6 @@
 </div>
 
 <script type="text/javascript">
-
 	new MohwaUI.Suggest({
 		elem: document.querySelector('#input_search'),
 		data: {
@@ -144,7 +143,7 @@
 
 	const list = [];
 
-	for (var i = 0; i < 10000; i++){
+	for (var i = 0; i < 100; i++){
 
 		list.push({
 			"Name": "Name" + i,
@@ -161,7 +160,7 @@
 
 
 	new MohwaUI.InfinityScroll({
-		elem: document.querySelector('.infinity-area'),
+		el: document.querySelector('.infinity-area'),
 		data: list,
 		cols: [
 			{name: 'logCode', hidden: true},
@@ -177,7 +176,7 @@
 		rowHeight: 40,
 		pageSize: 5,
 		onSelectCell: function (elem){
-			console.log('cell', this, elem);
+			// console.log('cell', this, elem);
 		}
 	}).init();
 

@@ -1,20 +1,16 @@
-#################
-## webstorm
-#################
-/.idea/
-
-#################
-## OSX
-#################
-.DS_Store
-
-#################
-## node
-#################
+# Dependency directories
 node_modules
+
+# log
+*.log
 npm-debug.log
 
-#################
-## package
-#################
-#dist/index.html
+# IDE
+.DS_STORE
+.idea
+*.iml
+.vscode
+
+# output
+.out
+dist
